@@ -82,3 +82,21 @@ User (Pengguna)
 4. **Backend (Golang)** memproses data dan menghitung sisa saldo pengguna.  
 5. **Backend** mengirimkan respon berupa status berhasil dan saldo terbaru.  
 6. **Frontend** menampilkan notifikasi sukses dan memperbarui informasi saldo pada dashboard pengguna.
+
+---
+
+## f. Struktur Proyek
+
+Struktur direktori utama proyek **Finastriva**:
+
+```
+finastriva/
+├── frontend/           # Next.js Project (Port 3000)
+│   ├── app/            # App Router (Home, About, Form, dll)
+│   ├── components/     # Navbar, Footer, UI Elements
+│   └── public/         # Assets / Images
+│
+└── backend/            # Golang Project (Port 8080)
+    ├── main.go         # Entry point & API Routes
+    └── handlers/       # Logika pemrosesan data form
+```
