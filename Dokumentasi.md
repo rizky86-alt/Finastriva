@@ -1,178 +1,159 @@
 # 🚀 Finastriva Fullstack Project
 
-Selamat datang di dokumentasi **Fullstack Finastriva**! 🎉  
-Dokumentasi ini dibuat agar kamu bisa melihat **perkembangan penulisan kode secara bertahap** saat memprompt AI.  
+Dokumentasi ini dibuat untuk **tracking progres coding step-by-step** dan penggunaan Git di project **Finastriva**.  
+Cocok untuk mahasiswa *Engineering* yang ingin melihat perkembangan kode secara bertahap saat memprompt AI.
 
-Backend menggunakan **Golang**, sedangkan Frontend menggunakan **Next.js**. Struktur dibuat bersih agar mudah dikembangkan.
+---
+# 📘 Chapter 2 – Git Workflow & Panduan Lengkap
+
+GitHub adalah “nyawa” kedua kamu. Kalau laptop tiba-tiba bermasalah, kodingan sudah aman di cloud.  
+Dokumentasi ini memandu kamu step-by-step setup Git untuk project **Finastriva** di Windows, lengkap dengan tips merge dan remote.
 
 ---
 
-## 📁 Struktur Proyek
+## 1️⃣ Buat Repository di GitHub
 
-```
+1. Buka [github.com](https://github.com) dan login.
+2. Klik tombol **New** (hijau) untuk buat repository baru.
+3. Beri nama repository: `finastriva`.
+4. Pilih **Public** atau **Private**.
+5. **PENTING:** Jangan centang “Add a README” atau `.gitignore`.
 
-finastriva/
-├── backend/
-│   └── main.go
-├── frontend/
-│   └── app/page.tsx
-└── README.md
+> **Checkpoint Git 1:** Repository GitHub siap, belum ada commit.
 
+---
+
+## 2️⃣ Inisialisasi Git di Laptop
+
+Buka terminal (CMD/PowerShell) di folder project `finastriva`:
+
+```powershell id="4b2k9p"
+cd C:\Users\Hype GLK\Documents\finastriva
+
+# Inisialisasi folder sebagai repository Git
+git init
+
+# Tambahkan semua file (Frontend & Backend)
+git add .
+
+# Commit pertama
+git commit -m "Initial commit: Setup NVM, Next.js Frontend and Golang Backend"
 ````
 
----
+> **Catatan:** Jika muncul warning LF → CRLF di Windows, normal.
+> Solusi otomatis:
 
-# 📘 Chapter 1 – Backend & Frontend Setup
+```powershell id="ox7m2t"
+git config core.autocrlf true
+```
 
-## 1️⃣ Inisialisasi Folder Backend
-
-```bash
-cd C:\Users\Hype GLK\Documents\finastriva
-mkdir backend
-cd backend
-go mod init finastriva-backend
-
-## 1️⃣ Step 1: Inisialisasi Folder Backend
-
-Buka terminal (CMD/PowerShell), lalu jalankan:
-
-```bash
-cd C:\Users\Hype GLK\Documents\finastriva
-mkdir backend
-cd backend
-go mod init finastriva-backend
-````
-
-> **Checkpoint 1:**
->
-> * Folder `backend` dibuat
-> * File `go.mod` berhasil diinisialisasi
+> **Checkpoint Git 2:** Semua file sudah di-commit pertama.
 
 ---
 
-## 2️⃣ Step 2: Membuat API Pertama (Hello World)
+## 3️⃣ Menentukan identitas Git
 
-Buat file `main.go` di folder `backend`:
+Karena ini repo lokal, pakai **identitas lokal** saja:
 
-```go
-package main
+```powershell id="8yp0qr"
+git config user.name "Rizky"
+git config user.email "jrahong46@gmail.com"
 
-import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-)
-
-func main() {
-	http.HandleFunc("/api/hello", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"message": "Halo dari Golang! Finastriva Backend Ready!"})
-	})
-
-	fmt.Println("Backend jalan di http://localhost:8080")
-	http.ListenAndServe(":8080", nil)
-}
+# Cek konfigurasi
+git config --list
 ```
 
-> **Checkpoint 2:**
->
-> * Route `/api/hello` siap menerima request
-> * Backend minimal bisa dijalankan
+> **Checkpoint Git 3:** Identitas Git untuk repo ini sudah diset.
 
 ---
 
-## 3️⃣ Step 3: Menjalankan Backend
+## 4️⃣ Hubungkan ke GitHub
 
-Di terminal folder `backend`, jalankan:
+Ambil URL remote repository (`https://github.com/rizky86-alt/Finastriva.git`) lalu jalankan:
 
-```bash
-go run main.go
+```powershell id="5kt1mz"
+git branch -M main
+git remote add origin https://github.com/rizky86-alt/Finastriva.git
+git push -u origin main
 ```
 
-Jika muncul:
+> **Catatan:** Gunakan username + GitHub Personal Access Token (PAT) jika diminta login.
+> `-u` menyetel upstream branch sehingga push berikutnya cukup `git push`.
 
-```
-Backend jalan di http://localhost:8080
-```
-
-… backend sudah siap.
-
-> **Checkpoint 3:**
->
-> * Backend berjalan
-> * API `/api/hello` dapat diakses
+> **Checkpoint Git 4:** Repo lokal sudah terhubung ke GitHub.
 
 ---
 
-## 4️⃣ Step 4: Hubungkan Frontend ke Backend
+## 5️⃣ Menangani remote yang sudah ada commit
 
-Buka `frontend/app/page.tsx`, ganti dengan kode:
+Jika push gagal karena remote sudah memiliki commit:
 
-```tsx
-"use client";
-import { useEffect, useState } from "react";
-
-export default function Home() {
-  const [data, setData] = useState("");
-
-  useEffect(() => {
-    fetch("http://localhost:8080/api/hello")
-      .then((res) => res.json())
-      .then((val) => setData(val.message))
-      .catch((err) => console.error("Error nembak API:", err));
-  }, []);
-
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-900 text-white">
-      <h1 className="text-4xl font-bold">Finastriva App</h1>
-      <p className="mt-4 text-xl text-green-400">
-        Status: {data || "Lagi konek ke backend..."}
-      </p>
-    </main>
-  );
-}
+```text id="d4h7qk"
+! [rejected] main -> main (fetch first)
 ```
 
-> **Checkpoint 4:**
->
-> * Frontend bisa fetch API Golang
-> * Data dari backend ditampilkan di UI
+Solusi aman:
+
+```powershell id="p1t8xu"
+git pull origin main --allow-unrelated-histories
+# VS Code terbuka untuk tulis message merge
+git push -u origin main
+```
+
+> Alternatif menimpa remote (HATI-HATI, commit remote akan hilang):
+
+```powershell id="l2x7ab"
+git push -u origin main --force
+```
+
+> **Checkpoint Git 5:** Merge atau force push berhasil.
 
 ---
 
-## 5️⃣ Step 5: Testing Fullstack
+## 6️⃣ Merge commit
 
-1. Jalankan backend (`go run main.go`)
-2. Jalankan frontend (`npm run dev`)
-3. Buka `http://localhost:3000` di browser
+* Saat `git pull` terjadi merge, editor VS Code terbuka.
+* Bisa pakai **message default** atau tulis pesan sendiri.
+* Simpan → tutup editor → merge selesai → push ke remote.
 
-Jika muncul:
-
-```
-Halo dari Golang! Finastriva Backend Ready!
-```
-
-… berarti sistem Fullstack berhasil dibuat.
-
-> **Checkpoint 5:**
->
-> * Fullstack siap
-> * Semua koneksi backend-frontend berfungsi
+> **Checkpoint Git 6:** Merge selesai, repo siap sinkron dengan remote.
 
 ---
 
-## 📝 Catatan Tambahan
+## 7️⃣ Tips penting
 
-* Gunakan **Checkpoint** setiap kali menambahkan fitur baru
-* Bisa menambahkan **tanggal dan versi kode** untuk tracking perkembangan
-* Ideal untuk dokumentasi progres saat memprompt AI atau bekerja secara iteratif
+* Pastikan `.gitignore` mengabaikan folder **node_modules**.
+* Commit secara rutin agar bisa rollback jika terjadi error.
+* Workflow aman di Windows:
+
+```powershell id="b3k6vy"
+git add .
+git commit -m "pesan commit"
+git pull origin main --allow-unrelated-histories
+git push origin main
+```
+
+> Gunakan `--allow-unrelated-histories` **hanya untuk merge pertama kali** dengan remote yang sudah ada commit.
 
 ---
 
-## ⚡ Tips
+## 8️⃣ Ringkasan Alur Git Finastriva
 
-* Selalu jalankan backend sebelum frontend
-* Gunakan VS Code untuk mempermudah navigasi folder
-* Commit setiap checkpoint untuk membandingkan perubahan kode
+1. Buat repository di GitHub → jangan isi README
+2. Init Git lokal → `git init`
+3. Set identitas lokal → `git config user.name/email`
+4. Add & commit → `git add .` + `git commit -m "..."`
+5. Hubungkan remote → `git remote add origin <URL>`
+6. Atur branch main → `git branch -M main`
+7. Push ke GitHub → `git push -u origin main`
+8. Jika remote sudah ada commit → pull + merge → push
+
+---
+
+> ✅ **Checkpoint final:** Repo lokal & remote sudah sinkron. Git siap dipakai untuk pengembangan selanjutnya.
+
+```
 
 
+Apakah mau saya buatkan template itu juga?
+```
