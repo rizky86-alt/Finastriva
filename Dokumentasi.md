@@ -1,8 +1,3 @@
-Oke! Saya bisa buatkan versi **`README.md`** yang rapi, terstruktur, dan interaktif, supaya setiap langkah penulisan kode tercatat dengan jelas. File ini cocok untuk **tracking perkembangan coding step-by-step saat prompting AI**. Saya juga akan menambahkan bagian “Checkpoint” agar setiap tahap bisa dicatat dan dibandingkan.
-
-Berikut versi `README.md` lengkap:
-
-```markdown
 # 🚀 Finastriva Fullstack Project
 
 Selamat datang di dokumentasi **Fullstack Finastriva**! 🎉  
@@ -26,6 +21,16 @@ finastriva/
 ````
 
 ---
+
+# 📘 Chapter 1 – Backend & Frontend Setup
+
+## 1️⃣ Inisialisasi Folder Backend
+
+```bash
+cd C:\Users\Hype GLK\Documents\finastriva
+mkdir backend
+cd backend
+go mod init finastriva-backend
 
 ## 1️⃣ Step 1: Inisialisasi Folder Backend
 
