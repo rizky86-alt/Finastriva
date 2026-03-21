@@ -3,157 +3,355 @@
 Dokumentasi ini dibuat untuk **tracking progres coding step-by-step** dan penggunaan Git di project **Finastriva**.  
 Cocok untuk mahasiswa *Engineering* yang ingin melihat perkembangan kode secara bertahap saat memprompt AI.
 
----
-# 📘 Chapter 2 – Git Workflow & Panduan Lengkap
+# 📘 Chapter 3 – Membuat Fitur Transaksi (Frontend ↔ Backend)
 
-GitHub adalah “nyawa” kedua kamu. Kalau laptop tiba-tiba bermasalah, kodingan sudah aman di cloud.  
-Dokumentasi ini memandu kamu step-by-step setup Git untuk project **Finastriva** di Windows, lengkap dengan tips merge dan remote.
+Sekarang kodingan kamu sudah aman di **GitHub**. Jika laptop bermasalah, kamu hanya perlu `git pull` untuk memulihkan project.
 
----
+Karena pondasi **Fullstack Finastriva** sudah berjalan:
+- ⚛️ Next.js (Frontend)
+- 🐹 Golang (Backend)
 
-## 1️⃣ Buat Repository di GitHub
+Sekarang kita mulai masuk ke inti aplikasi **Finastriva**:  
+💰 **Logika Keuangan – Menambah Transaksi**.
 
-1. Buka [github.com](https://github.com) dan login.
-2. Klik tombol **New** (hijau) untuk buat repository baru.
-3. Beri nama repository: `finastriva`.
-4. Pilih **Public** atau **Private**.
-5. **PENTING:** Jangan centang “Add a README” atau `.gitignore`.
-
-> **Checkpoint Git 1:** Repository GitHub siap, belum ada commit.
+Fitur pertama yang akan kita bangun adalah **Input Transaksi (Income / Expense)**.
 
 ---
 
-## 2️⃣ Inisialisasi Git di Laptop
+# 1️⃣ Rapikan Backend (Golang API)
 
-Buka terminal (CMD/PowerShell) di folder project `finastriva`:
-
-```powershell id="4b2k9p"
-cd C:\Users\Hype GLK\Documents\finastriva
-
-# Inisialisasi folder sebagai repository Git
-git init
-
-# Tambahkan semua file (Frontend & Backend)
-git add .
-
-# Commit pertama
-git commit -m "Initial commit: Setup NVM, Next.js Frontend and Golang Backend"
-````
-
-> **Catatan:** Jika muncul warning LF → CRLF di Windows, normal.
-> Solusi otomatis:
-
-```powershell id="ox7m2t"
-git config core.autocrlf true
-```
-
-> **Checkpoint Git 2:** Semua file sudah di-commit pertama.
-
----
-
-## 3️⃣ Menentukan identitas Git
-
-Karena ini repo lokal, pakai **identitas lokal** saja:
-
-```powershell id="8yp0qr"
-git config user.name "Rizky"
-git config user.email "jrahong46@gmail.com"
-
-# Cek konfigurasi
-git config --list
-```
-
-> **Checkpoint Git 3:** Identitas Git untuk repo ini sudah diset.
-
----
-
-## 4️⃣ Hubungkan ke GitHub
-
-Ambil URL remote repository (`https://github.com/rizky86-alt/Finastriva.git`) lalu jalankan:
-
-```powershell id="5kt1mz"
-git branch -M main
-git remote add origin https://github.com/rizky86-alt/Finastriva.git
-git push -u origin main
-```
-
-> **Catatan:** Gunakan username + GitHub Personal Access Token (PAT) jika diminta login.
-> `-u` menyetel upstream branch sehingga push berikutnya cukup `git push`.
-
-> **Checkpoint Git 4:** Repo lokal sudah terhubung ke GitHub.
-
----
-
-## 5️⃣ Menangani remote yang sudah ada commit
-
-Jika push gagal karena remote sudah memiliki commit:
-
-```text id="d4h7qk"
-! [rejected] main -> main (fetch first)
-```
-
-Solusi aman:
-
-```powershell id="p1t8xu"
-git pull origin main --allow-unrelated-histories
-# VS Code terbuka untuk tulis message merge
-git push -u origin main
-```
-
-> Alternatif menimpa remote (HATI-HATI, commit remote akan hilang):
-
-```powershell id="l2x7ab"
-git push -u origin main --force
-```
-
-> **Checkpoint Git 5:** Merge atau force push berhasil.
-
----
-
-## 6️⃣ Merge commit
-
-* Saat `git pull` terjadi merge, editor VS Code terbuka.
-* Bisa pakai **message default** atau tulis pesan sendiri.
-* Simpan → tutup editor → merge selesai → push ke remote.
-
-> **Checkpoint Git 6:** Merge selesai, repo siap sinkron dengan remote.
-
----
-
-## 7️⃣ Tips penting
-
-* Pastikan `.gitignore` mengabaikan folder **node_modules**.
-* Commit secara rutin agar bisa rollback jika terjadi error.
-* Workflow aman di Windows:
-
-```powershell id="b3k6vy"
-git add .
-git commit -m "pesan commit"
-git pull origin main --allow-unrelated-histories
-git push origin main
-```
-
-> Gunakan `--allow-unrelated-histories` **hanya untuk merge pertama kali** dengan remote yang sudah ada commit.
-
----
-
-## 8️⃣ Ringkasan Alur Git Finastriva
-
-1. Buat repository di GitHub → jangan isi README
-2. Init Git lokal → `git init`
-3. Set identitas lokal → `git config user.name/email`
-4. Add & commit → `git add .` + `git commit -m "..."`
-5. Hubungkan remote → `git remote add origin <URL>`
-6. Atur branch main → `git branch -M main`
-7. Push ke GitHub → `git push -u origin main`
-8. Jika remote sudah ada commit → pull + merge → push
-
----
-
-> ✅ **Checkpoint final:** Repo lokal & remote sudah sinkron. Git siap dipakai untuk pengembangan selanjutnya.
+Backend akan menerima data transaksi dari frontend melalui endpoint:
 
 ```
-
-
-Apakah mau saya buatkan template itu juga?
+POST /api/transactions
 ```
+
+Edit file:
+
+```
+backend/main.go
+```
+
+Lalu isi dengan kode berikut:
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
+
+// Struktur data transaksi
+type Transaction struct {
+	ID     int    `json:"id"`
+	Amount int    `json:"amount"`
+	Desc   string `json:"desc"`
+	Type   string `json:"type"` // "income" atau "expense"
+}
+
+func main() {
+
+	// Dummy storage sementara (belum pakai database)
+	transactions := []Transaction{}
+
+	http.HandleFunc("/api/transactions", func(w http.ResponseWriter, r *http.Request) {
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		if r.Method == "GET" {
+			json.NewEncoder(w).Encode(transactions)
+			return
+		}
+
+		if r.Method == "POST" {
+			var newTrans Transaction
+			json.NewDecoder(r.Body).Decode(&newTrans)
+
+			newTrans.ID = len(transactions) + 1
+			transactions = append(transactions, newTrans)
+
+			json.NewEncoder(w).Encode(newTrans)
+		}
+	})
+
+	fmt.Println("Backend Finastriva jalan di http://localhost:8080")
+
+	http.ListenAndServe(":8080", nil)
+}
+```
+
+---
+
+### Cara Kerja API Ini
+
+Endpoint yang tersedia:
+
+| Method | Endpoint | Fungsi |
+|------|------|------|
+| GET | `/api/transactions` | Mengambil semua transaksi |
+| POST | `/api/transactions` | Menambahkan transaksi baru |
+
+Contoh JSON yang dikirim dari frontend:
+
+```json
+{
+  "amount": 20000,
+  "desc": "Beli Makan",
+  "type": "expense"
+}
+```
+
+---
+
+✅ **Checkpoint Backend:**  
+Server berjalan di:
+
+```
+http://localhost:8080
+```
+
+---
+
+# 2️⃣ Membuat Form di Frontend (Next.js)
+
+Sekarang kita buat **UI input transaksi** di frontend.
+
+Edit file:
+
+```
+frontend/app/page.tsx
+```
+
+Isi dengan kode berikut:
+
+```tsx
+"use client";
+import { useState } from "react";
+
+export default function Home() {
+  const [amount, setAmount] = useState(0);
+  const [desc, setDesc] = useState("");
+
+  const tambahTransaksi = async () => {
+    const res = await fetch("http://localhost:8080/api/transactions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: Number(amount),
+        desc,
+        type: "expense",
+      }),
+    });
+
+    if (res.ok) {
+      alert("Transaksi Berhasil Disimpan!");
+    }
+  };
+
+  return (
+    <main className="flex min-h-screen flex-col items-center p-10 bg-black text-white">
+      <h1 className="text-3xl font-bold text-blue-500">
+        Finastriva Dashboard
+      </h1>
+
+      <div className="mt-10 p-6 bg-gray-800 rounded-lg w-full max-w-md">
+        <label className="block mb-2">Keterangan</label>
+        <input
+          onChange={(e) => setDesc(e.target.value)}
+          className="w-full p-2 mb-4 rounded bg-gray-700 outline-none"
+          placeholder="Contoh: Beli Kopi"
+        />
+
+        <label className="block mb-2">Nominal (IDR)</label>
+        <input
+          type="number"
+          onChange={(e) => setAmount(Number(e.target.value))}
+          className="w-full p-2 mb-4 rounded bg-gray-700 outline-none"
+          placeholder="10000"
+        />
+
+        <button
+          onClick={tambahTransaksi}
+          className="w-full bg-blue-600 p-2 rounded font-bold hover:bg-blue-700"
+        >
+          Simpan Transaksi
+        </button>
+      </div>
+    </main>
+  );
+}
+```
+
+---
+
+✅ **Checkpoint Frontend:**
+
+Halaman dashboard tersedia di:
+
+```
+http://localhost:3000
+```
+
+---
+
+# 3️⃣ Jalankan & Test Sistem
+
+### Jalankan Backend
+
+Masuk ke folder backend:
+
+```bash
+go run main.go
+```
+
+Terminal akan menampilkan:
+
+```
+Backend Finastriva jalan di http://localhost:8080
+```
+
+---
+
+### Jalankan Frontend
+
+Masuk ke folder frontend:
+
+```bash
+npm run dev
+```
+
+Lalu buka:
+
+```
+http://localhost:3000
+```
+
+---
+
+### Test Input
+
+Coba masukkan:
+
+```
+Keterangan: Beli Makan
+Nominal: 20000
+```
+
+Klik:
+
+```
+Simpan Transaksi
+```
+
+Jika berhasil muncul:
+
+```
+Transaksi Berhasil Disimpan!
+```
+
+---
+
+# 4️⃣ Mekanik yang Baru Kamu Bangun
+
+Beberapa konsep penting yang baru saja kamu implementasikan:
+
+### 1. JSON Marshalling
+
+Golang mengubah JSON menjadi struct Go.
+
+```
+JSON → Struct Go → Diproses Server
+```
+
+---
+
+### 2. State Management (React)
+
+React menggunakan:
+
+```
+useState()
+```
+
+untuk menangkap input user secara **real-time**.
+
+---
+
+### 3. CORS (Cross-Origin Resource Sharing)
+
+Browser memblokir request antar port secara default.
+
+Frontend:
+```
+localhost:3000
+```
+
+Backend:
+```
+localhost:8080
+```
+
+Solusinya:
+
+```go
+w.Header().Set("Access-Control-Allow-Origin", "*")
+```
+
+---
+
+# 5️⃣ Limitasi Saat Ini
+
+Saat ini sistem masih memiliki keterbatasan:
+
+- Data hanya tersimpan di **memory**
+- Jika server restart → **data hilang**
+- Belum ada **database**
+- Belum ada **authentication**
+
+---
+
+# 6️⃣ Roadmap Selanjutnya
+
+Di chapter berikutnya kita akan menambahkan:
+
+### 🗄 Database PostgreSQL
+
+Supaya:
+
+- transaksi tersimpan permanen
+- bisa query data
+- bisa membuat analytics keuangan
+
+---
+
+# 7️⃣ Ringkasan Alur Sistem
+
+Flow data yang sudah bekerja:
+
+```
+User Input
+   ↓
+React Form (Next.js)
+   ↓
+HTTP POST Request
+   ↓
+Golang API
+   ↓
+JSON Decode
+   ↓
+Data Disimpan (Memory)
+```
+
+---
+
+✅ **Checkpoint Final Chapter 3:**
+
+- Frontend bisa input transaksi
+- Backend menerima data
+- Data diproses melalui API
+- Fullstack Finastriva sudah **terhubung end-to-end**
