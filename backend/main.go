@@ -13,7 +13,7 @@ import (
 var db *sql.DB
 
 func initDB() {
-	connStr := "user=postgres password=admin123 dbname=finastriva sslmode=disable"
+	connStr := "user=postgres password=KINGKONG69 dbname=finastriva sslmode=disable"
 	var err error
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
@@ -28,9 +28,11 @@ func initDB() {
 }
 
 type Transaction struct {
-	ID     int    `json:"id"`
-	Amount int    `json:"amount"`
-	Desc   string `json:"desc"`
+	ID        int    `json:"id"`
+	Amount    int    `json:"amount"`
+	Desc      string `json:"desc"`
+	Type      string `json:"type"`       // Kolom baru
+	CreatedAt string `json:"created_at"` // Kolom baru
 }
 
 func main() {
@@ -45,11 +47,11 @@ func main() {
 
 		if r.Method == "GET" {
 			// AMBIL DARI DATABASE
-			rows, _ := db.Query("SELECT id, amount, description FROM transactions")
+			rows, _ := db.Query("SELECT id, amount, description, type, created_at FROM transactions ORDER BY created_at DESC")
 			var ts []Transaction
 			for rows.Next() {
 				var t Transaction
-				rows.Scan(&t.ID, &t.Amount, &t.Desc)
+				rows.Scan(&t.ID, &t.Amount, &t.Desc, &t.Type, &t.CreatedAt)
 				ts = append(ts, t)
 			}
 			json.NewEncoder(w).Encode(ts)
@@ -58,8 +60,8 @@ func main() {
 			// SIMPAN KE DATABASE
 			var t Transaction
 			json.NewDecoder(r.Body).Decode(&t)
-			query := `INSERT INTO transactions (amount, description) VALUES ($1, $2) RETURNING id`
-			db.QueryRow(query, t.Amount, t.Desc).Scan(&t.ID)
+			query := `INSERT INTO transactions (amount, description, type) VALUES ($1, $2, $3) RETURNING id, created_at`
+			db.QueryRow(query, t.Amount, t.Desc, t.Type).Scan(&t.ID, &t.CreatedAt)
 			json.NewEncoder(w).Encode(t)
 		}
 	})
