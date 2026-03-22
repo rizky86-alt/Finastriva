@@ -6,39 +6,42 @@ export default function Home() {
   const [amount, setAmount] = useState(0);
   const [desc, setDesc] = useState("");
   const [type, setType] = useState("expense");
+  const [editingId, setEditingId] = useState<number | null>(null); // Menyimpan ID yang sedang diedit
 
-  const fetchTransactions = async () => {
-    try {
-      const res = await fetch("http://localhost:8080/api/transactions");
-      const data = await res.json();
-      setTransactions(data || []);
-    } catch (err) {
-      console.error("Gagal ambil data:", err);
-    }
-  };
+    const fetchTransactions = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/transactions");
+        const data = await res.json();
+        setTransactions(data || []);
+      } catch (err) {
+        console.error("Gagal ambil data:", err);
+      }
+    };
 
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
+    useEffect(() => {
+      fetchTransactions();
+    }, []);
 
-  const tambahTransaksi = async () => {
-    if (!desc || amount <= 0) return alert("Isi data dengan benar!");
+    const tambahTransaksi = async () => {
+      if (!desc || amount <= 0) return alert("Isi data dengan benar!");
 
-    await fetch("http://localhost:8080/api/transactions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        amount: Number(amount),
-        desc: desc,
-        type: type,
-      }),
-    });
-    
+      const method = editingId ? "PUT" : "POST";
+      const url = editingId 
+        ? `http://localhost:8080/api/transactions?id=${editingId}` 
+        : "http://localhost:8080/api/transactions";
 
-    setDesc("");
-    setAmount(0);
-    fetchTransactions();
-  };
+      await fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: Number(amount), desc, type }),
+      });
+
+      // Reset semua form
+      setEditingId(null);
+      setDesc("");
+      setAmount(0);
+      fetchTransactions();
+    };
     const hapusTransaksi = async (id: number) => {
     // Mekanik Konfirmasi: Agar tidak tidak sengaja terhapus
     if (!confirm("Yakin ingin menghapus transaksi ini?")) return;
@@ -50,6 +53,16 @@ export default function Home() {
     // Refresh data setelah menghapus
     fetchTransactions();
   };
+    const startEdit = (t: any) => {
+    setEditingId(t.id);
+    setDesc(t.desc);
+    setAmount(t.amount);
+    setType(t.type);
+
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  };
+  
+
 
   return (
     <main className="flex min-h-screen flex-col items-center p-10 bg-black text-white">
@@ -100,7 +113,7 @@ export default function Home() {
           className="w-full bg-blue-600 p-3 rounded font-bold hover:bg-blue-700 transition"
         >
         
-          Simpan Transaksi
+          {editingId ? "Perbarui Transaksi" : "Simpan Transaksi"}
         </button>
       </div>
 
@@ -135,12 +148,20 @@ export default function Home() {
               {t.type === "income" ? "+" : "-"} Rp{" "}
               {t.amount.toLocaleString()}
             </span>
-            {/* Tombol Hapus */}
+              
+               {/* Tombol Edit */}
+              <button 
+              onClick={() => startEdit(t)}
+              className="text-gray-500 hover:text-blue-500 transition-colors p-2"
+            >✏️</button>
+
+             {/* Tombol Hapus */}
             <button 
               onClick={() => hapusTransaksi(t.id)}
               className="text-gray-500 hover:text-red-500 transition-colors p-2"
               title="Hapus">🗑</button>
           </div>
+          
         ))}
       </div>
     </main>

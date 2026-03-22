@@ -46,7 +46,7 @@ func main() {
     w.Header().Set("Content-Type", "application/json")
     w.Header().Set("Access-Control-Allow-Origin", "*")
     // Pastikan DELETE ada di daftar bawah ini
-    w.Header().Set("Access-Control-Allow-Methods", "POST, GET, DELETE, OPTIONS") 
+    w.Header().Set("Access-Control-Allow-Methods", "POST, GET, DELETE, PUT, OPTIONS") 
     w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
     // 2. TANGANI PRE-FLIGHT (Browser cek izin sebelum DELETE)
@@ -100,7 +100,52 @@ func main() {
         // Kirim respon JSON sukses (agar frontend tidak bingung)
         w.WriteHeader(http.StatusOK)
         json.NewEncoder(w).Encode(map[string]string{"message": "Berhasil dihapus"})
+   
+    } else if r.Method == "PUT" {
+        // 1. Ambil ID dari URL (?id=xxx)
+        id := r.URL.Query().Get("id")
+        fmt.Println("Mencoba Update ID:", id) // Log untuk cek di terminal
+
+        if id == "" {
+            http.Error(w, "ID tidak ditemukan", http.StatusBadRequest)
+            return
+        }
+
+        // 2. Baca data baru
+        var t Transaction
+        err := json.NewDecoder(r.Body).Decode(&t)
+        if err != nil {
+            fmt.Println("Error Decode JSON:", err)
+            http.Error(w, "Gagal baca data JSON", http.StatusBadRequest)
+            return
+        }
+
+        // Log untuk memastikan data yang diterima tidak kosong
+        fmt.Printf("Data Diterima: Amount=%d, Desc=%s, Type=%s\n", t.Amount, t.Desc, t.Type)
+
+        // 3. Jalankan perintah SQL UPDATE
+        // PASTIKAN: urutan kolom ($1, $2, etc) sesuai dengan variabel (t.Amount, t.Desc, etc)
+        query := `UPDATE transactions SET amount = $1, description = $2, type = $3 WHERE id = $4`
+        result, err := db.Exec(query, t.Amount, t.Desc, t.Type, id)
+        
+        if err != nil {
+            fmt.Println("Error SQL Update:", err)
+            http.Error(w, "Gagal update database", http.StatusInternalServerError)
+            return
+        }
+
+        // 4. Verifikasi apakah ada baris yang benar-benar berubah
+        rowsAffected, _ := result.RowsAffected()
+        if rowsAffected == 0 {
+            fmt.Println("Peringatan: Tidak ada baris yang diubah. Apakah ID", id, "ada di database?")
+        } else {
+            fmt.Println("Sukses! Baris diperbarui.")
+        }
+
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(map[string]string{"message": "Data berhasil diperbarui"})
     }
+    
 })
 
 	fmt.Println("Backend Finastriva jalan di http://localhost:8080")
