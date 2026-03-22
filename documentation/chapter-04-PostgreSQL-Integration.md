@@ -1,4 +1,3 @@
----
 
 # 🚀 Finastriva Fullstack Project
 
@@ -595,6 +594,5 @@ Di chapter ini kamu telah:
 * API bisa menyimpan transaksi
 * Data tidak hilang saat server restart
 
----
 
 
