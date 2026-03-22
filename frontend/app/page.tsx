@@ -1,43 +1,130 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
+  const [transactions, setTransactions] = useState([]);
   const [amount, setAmount] = useState(0);
   const [desc, setDesc] = useState("");
+  const [type, setType] = useState("expense");
+
+  const fetchTransactions = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/transactions");
+      const data = await res.json();
+      setTransactions(data || []);
+    } catch (err) {
+      console.error("Gagal ambil data:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
 
   const tambahTransaksi = async () => {
-    const res = await fetch("http://localhost:8080/api/transactions", {
+    if (!desc || amount <= 0) return alert("Isi data dengan benar!");
+
+    await fetch("http://localhost:8080/api/transactions", {
       method: "POST",
-      body: JSON.stringify({ amount: Number(amount), desc, type: "expense" }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount: Number(amount),
+        desc: desc,
+        type: type,
+      }),
     });
-    if (res.ok) alert("Transaksi Berhasil Disimpan!");
+
+    setDesc("");
+    setAmount(0);
+    fetchTransactions();
   };
 
   return (
     <main className="flex min-h-screen flex-col items-center p-10 bg-black text-white">
-      <h1 className="text-3xl font-bold text-blue-500">Finastriva Dashboard</h1>
-      
-      <div className="mt-10 p-6 bg-gray-800 rounded-lg w-full max-w-md">
+      <h1 className="text-3xl font-bold text-blue-500 mb-6">
+        Finastriva Dashboard
+      </h1>
+
+      <div className="mt-4 p-6 bg-gray-800 rounded-lg w-full max-w-md">
+        <div className="flex gap-2 mb-4 bg-gray-900 p-1 rounded-lg">
+          <button
+            onClick={() => setType("income")}
+            className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
+              type === "income" ? "bg-green-600 text-white" : "text-gray-400"
+            }`}
+          >
+            Pemasukan
+          </button>
+
+          <button
+            onClick={() => setType("expense")}
+            className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
+              type === "expense" ? "bg-red-600 text-white" : "text-gray-400"
+            }`}
+          >
+            Pengeluaran
+          </button>
+        </div>
+
         <label className="block mb-2">Keterangan</label>
-        <input 
+        <input
+          value={desc}
           onChange={(e) => setDesc(e.target.value)}
-          className="w-full p-2 mb-4 rounded bg-gray-700 outline-none" 
+          className="w-full p-2 mb-4 rounded bg-gray-700 outline-none"
           placeholder="Contoh: Beli Kopi"
         />
-        
+
         <label className="block mb-2">Nominal (IDR)</label>
-        <input 
+        <input
+          value={amount === 0 ? "" : amount}
           type="number"
           onChange={(e) => setAmount(Number(e.target.value))}
-          className="w-full p-2 mb-4 rounded bg-gray-700 outline-none" 
+          className="w-full p-2 mb-6 rounded bg-gray-700 outline-none font-mono"
           placeholder="10000"
         />
-        
-        <button 
+
+        <button
           onClick={tambahTransaksi}
-          className="w-full bg-blue-600 p-2 rounded font-bold hover:bg-blue-700">
+          className="w-full bg-blue-600 p-3 rounded font-bold hover:bg-blue-700 transition"
+        >
           Simpan Transaksi
         </button>
+      </div>
+
+      <div className="mt-10 w-full max-w-2xl">
+        <h2 className="text-xl font-semibold mb-4 text-gray-400">
+          Riwayat Transaksi
+        </h2>
+
+        {transactions.map((t: any) => (
+          <div
+            key={t.id}
+            className={`bg-gray-900 p-4 rounded-lg flex justify-between border-l-4 ${
+              t.type === "income" ? "border-green-500" : "border-red-500"
+            } items-center mb-3 shadow-md`}
+          >
+            <div className="flex flex-col">
+              <span className="text-white font-medium">{t.desc}</span>
+
+              <span className="text-gray-500 text-xs">
+                {new Date(t.created_at).toLocaleDateString("id-ID", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+
+            <span
+              className={`font-mono text-lg font-bold ${
+                t.type === "income" ? "text-green-400" : "text-red-400"
+              }`}
+            >
+              {t.type === "income" ? "+" : "-"} Rp{" "}
+              {t.amount.toLocaleString()}
+            </span>
+          </div>
+        ))}
       </div>
     </main>
   );
