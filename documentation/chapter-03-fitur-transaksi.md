@@ -3,6 +3,8 @@
 Dokumentasi ini dibuat untuk **tracking progres coding step-by-step** dan penggunaan Git di project **Finastriva**.  
 Cocok untuk mahasiswa *Engineering* yang ingin melihat perkembangan kode secara bertahap saat memprompt AI.
 
+---
+
 # 📘 Chapter 3 – Membuat Fitur Transaksi (Frontend ↔ Backend)
 
 Sekarang kodingan kamu sudah aman di **GitHub**. Jika laptop bermasalah, kamu hanya perlu `git pull` untuk memulihkan project.
