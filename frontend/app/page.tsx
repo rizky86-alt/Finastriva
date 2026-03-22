@@ -33,9 +33,21 @@ export default function Home() {
         type: type,
       }),
     });
+    
 
     setDesc("");
     setAmount(0);
+    fetchTransactions();
+  };
+    const hapusTransaksi = async (id: number) => {
+    // Mekanik Konfirmasi: Agar tidak tidak sengaja terhapus
+    if (!confirm("Yakin ingin menghapus transaksi ini?")) return;
+
+    await fetch(`http://localhost:8080/api/transactions?id=${id}`, {
+      method: "DELETE",
+    });
+
+    // Refresh data setelah menghapus
     fetchTransactions();
   };
 
@@ -87,6 +99,7 @@ export default function Home() {
           onClick={tambahTransaksi}
           className="w-full bg-blue-600 p-3 rounded font-bold hover:bg-blue-700 transition"
         >
+        
           Simpan Transaksi
         </button>
       </div>
@@ -114,7 +127,6 @@ export default function Home() {
                 })}
               </span>
             </div>
-
             <span
               className={`font-mono text-lg font-bold ${
                 t.type === "income" ? "text-green-400" : "text-red-400"
@@ -123,6 +135,11 @@ export default function Home() {
               {t.type === "income" ? "+" : "-"} Rp{" "}
               {t.amount.toLocaleString()}
             </span>
+            {/* Tombol Hapus */}
+            <button 
+              onClick={() => hapusTransaksi(t.id)}
+              className="text-gray-500 hover:text-red-500 transition-colors p-2"
+              title="Hapus">🗑</button>
           </div>
         ))}
       </div>
