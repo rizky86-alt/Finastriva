@@ -28,11 +28,10 @@ func initDB() {
 }
 
 type Transaction struct {
-	ID        int    `json:"id"`
-	Amount    int    `json:"amount"`
-	Desc      string `json:"desc"`
-	Type      string `json:"type"`       // Kolom baru
-	CreatedAt string `json:"created_at"` // Kolom baru
+	ID     int    `json:"id"`
+	Amount int    `json:"amount"`
+	Desc   string `json:"desc"`
+	Type   string `json:"type"` // "income" atau "expense"
 }
 
 func main() {
@@ -46,23 +45,13 @@ func main() {
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 		if r.Method == "GET" {
-			// AMBIL DARI DATABASE
-			rows, _ := db.Query("SELECT id, amount, description, type, created_at FROM transactions ORDER BY created_at DESC")
-			var ts []Transaction
-			for rows.Next() {
-				var t Transaction
-				rows.Scan(&t.ID, &t.Amount, &t.Desc, &t.Type, &t.CreatedAt)
-				ts = append(ts, t)
-			}
-			json.NewEncoder(w).Encode(ts)
-
+			json.NewEncoder(w).Encode(transactions)
 		} else if r.Method == "POST" {
-			// SIMPAN KE DATABASE
-			var t Transaction
-			json.NewDecoder(r.Body).Decode(&t)
-			query := `INSERT INTO transactions (amount, description, type) VALUES ($1, $2, $3) RETURNING id, created_at`
-			db.QueryRow(query, t.Amount, t.Desc, t.Type).Scan(&t.ID, &t.CreatedAt)
-			json.NewEncoder(w).Encode(t)
+			var newTrans Transaction
+			json.NewDecoder(r.Body).Decode(&newTrans)
+			newTrans.ID = len(transactions) + 1
+			transactions = append(transactions, newTrans)
+			json.NewEncoder(w).Encode(newTrans)
 		}
 	})
 
