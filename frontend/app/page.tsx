@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 export default function Home() {
   const [transactions, setTransactions] = useState([]);
@@ -65,10 +66,32 @@ export default function Home() {
 
 
   return (
+    
+    
     <main className="flex min-h-screen flex-col items-center p-10 bg-black text-white">
-      <h1 className="text-3xl font-bold text-blue-500 mb-6">
-        Finastriva Dashboard
-      </h1>
+       
+       <header className="flex items-center gap-4 mb-10 group">
+        {/* Container Logo dengan efek Hover minimalis */}
+        <div className="relative p-2 bg-gray-900 rounded-xl border border-gray-800 group-hover:border-blue-500/50 transition-all duration-300 shadow-2xl shadow-blue-500/10">
+          <Image 
+            src="/logo-finastriva.svg" 
+            alt="Finastriva Logo" 
+            width={40} 
+            height={40}
+            priority // Memastikan logo dimuat paling awal
+          />
+        </div>
+
+        {/* Penyelarasan Teks Brand */}
+        <div className="flex flex-col">
+          <h1 className="text-2xl font-bold tracking-tight font-montserrat text-white leading-none">
+            FINASTRIVA
+          </h1>
+          <span className="text-[10px] uppercase tracking-[0.3em] text-blue-500 font-semibold mt-1 opacity-80">
+            Smart Assets Manager
+          </span>
+        </div>
+      </header>
 
       <div className="mt-4 p-6 bg-gray-800 rounded-lg w-full max-w-md">
         <div className="flex gap-2 mb-4 bg-gray-900 p-1 rounded-lg">
