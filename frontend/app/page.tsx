@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 export default function Home() {
   const [transactions, setTransactions] = useState([]);
@@ -63,6 +64,20 @@ export default function Home() {
   const totalBalance = transactions.reduce((acc, t: any) => 
     t.type === "income" ? acc + t.amount : acc - t.amount, 0
   );
+  // Menghitung total pemasukan dan pengeluaran untuk grafik
+  const incomeTotal = transactions
+    .filter((t: any) => t.type === "income")
+    .reduce((acc, t: any) => acc + t.amount, 0);
+
+  const expenseTotal = transactions
+    .filter((t: any) => t.type === "expense")
+    .reduce((acc, t: any) => acc + t.amount, 0);
+
+  // Format data untuk Recharts
+  const chartData = [
+    { name: "Pemasukan", value: incomeTotal, color: "#22c55e" }, // Green-500
+    { name: "Pengeluaran", value: expenseTotal, color: "#ef4444" }, // Red-500
+  ];
 
   return (
     <main className="flex min-h-screen flex-col items-center p-10 bg-black text-white font-sans">
@@ -88,9 +103,38 @@ export default function Home() {
           </div>
         </div>
 
-        {/* CARD 2: ANALYTICS */}
-        <div className="md:col-span-2 bg-gray-900/50 border border-gray-800 p-6 rounded-3xl shadow-xl flex items-center justify-center">
-          <p className="text-gray-500 italic">Visualisasi Chart akan muncul di sini (Chapter 6.4)</p>
+        {/* CARD 2: ANALYTICS (Pie Chart) */}
+        <div className="md:col-span-2 bg-gray-900/50 border border-gray-800 p-6 rounded-3xl shadow-xl flex flex-col h-[300px] md:h-full">
+          <h2 className="text-gray-400 text-xs font-medium uppercase tracking-[0.2em] mb-4">Alokasi Dana</h2>
+          
+          {incomeTotal === 0 && expenseTotal === 0 ? (
+            <div className="flex-1 flex items-center justify-center text-gray-500 italic">
+              Belum ada data untuk ditampilkan
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#111827', border: 'none', borderRadius: '8px', color: '#fff' }}
+                  itemStyle={{ color: '#fff' }}
+                />
+                <Legend verticalAlign="bottom" height={36}/>
+              </PieChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
         {/* CARD 3: INPUT FORM */}
