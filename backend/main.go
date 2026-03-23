@@ -23,7 +23,7 @@ var db *sql.DB
 
 func initDB() {
 	// SESUAIKAN: password=admin123 dengan password pgAdmin kamu
-	connStr := "user=postgres password=admin123 dbname=finastriva sslmode=disable"
+	connStr := "user=postgres password=KINGKONG69 dbname=finastriva sslmode=disable"
 	var err error
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
@@ -42,49 +42,111 @@ func main() {
 	defer db.Close()
 
 	http.HandleFunc("/api/transactions", func(w http.ResponseWriter, r *http.Request) {
-		// Header Keamanan & CORS
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+    // 1. SET HEADER DI PALING ATAS (Wajib untuk semua method)
+    w.Header().Set("Content-Type", "application/json")
+    w.Header().Set("Access-Control-Allow-Origin", "*")
+    // Pastikan DELETE ada di daftar bawah ini
+    w.Header().Set("Access-Control-Allow-Methods", "POST, GET, DELETE, PUT, OPTIONS") 
+    w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
+    // 2. TANGANI PRE-FLIGHT (Browser cek izin sebelum DELETE)
+    if r.Method == "OPTIONS" {
+        w.WriteHeader(http.StatusOK)
+        return
+    }
 
-		if r.Method == "GET" {
-			// Query: Ambil data terbaru di posisi teratas
-			rows, err := db.Query("SELECT id, amount, description, type, created_at FROM transactions ORDER BY created_at DESC")
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			defer rows.Close()
+    if r.Method == "GET" {
+        rows, err := db.Query("SELECT id, amount, description, type, created_at FROM transactions ORDER BY created_at DESC")
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        defer rows.Close()
 
-			var ts []Transaction
-			for rows.Next() {
-				var t Transaction
-				rows.Scan(&t.ID, &t.Amount, &t.Desc, &t.Type, &t.CreatedAt)
-				ts = append(ts, t)
-			}
-			json.NewEncoder(w).Encode(ts)
+        var ts []Transaction
+        for rows.Next() {
+            var t Transaction
+            rows.Scan(&t.ID, &t.Amount, &t.Desc, &t.Type, &t.CreatedAt)
+            ts = append(ts, t)
+        }
+        json.NewEncoder(w).Encode(ts)
 
-		} else if r.Method == "POST" {
-			var t Transaction
-			json.NewDecoder(r.Body).Decode(&t)
+    } else if r.Method == "POST" {
+        var t Transaction
+        json.NewDecoder(r.Body).Decode(&t)
 
-			// Logic: Simpan ke DB dan ambil ID + Tanggal yang digenerate Postgres
-			query := `INSERT INTO transactions (amount, description, type) VALUES ($1, $2, $3) RETURNING id, created_at`
-			err := db.QueryRow(query, t.Amount, t.Desc, t.Type).Scan(&t.ID, &t.CreatedAt)
-			
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			json.NewEncoder(w).Encode(t)
-		}
-	})
+        query := `INSERT INTO transactions (amount, description, type) VALUES ($1, $2, $3) RETURNING id, created_at`
+        err := db.QueryRow(query, t.Amount, t.Desc, t.Type).Scan(&t.ID, &t.CreatedAt)
+        
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        json.NewEncoder(w).Encode(t)
+
+    } else if r.Method == "DELETE" {
+        id := r.URL.Query().Get("id")
+        if id == "" {
+            http.Error(w, "ID tidak ditemukan", http.StatusBadRequest)
+            return
+        }
+
+        _, err := db.Exec("DELETE FROM transactions WHERE id = $1", id)
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+
+        // Kirim respon JSON sukses (agar frontend tidak bingung)
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(map[string]string{"message": "Berhasil dihapus"})
+   
+    } else if r.Method == "PUT" {
+        // 1. Ambil ID dari URL (?id=xxx)
+        id := r.URL.Query().Get("id")
+        fmt.Println("Mencoba Update ID:", id) // Log untuk cek di terminal
+
+        if id == "" {
+            http.Error(w, "ID tidak ditemukan", http.StatusBadRequest)
+            return
+        }
+
+        // 2. Baca data baru
+        var t Transaction
+        err := json.NewDecoder(r.Body).Decode(&t)
+        if err != nil {
+            fmt.Println("Error Decode JSON:", err)
+            http.Error(w, "Gagal baca data JSON", http.StatusBadRequest)
+            return
+        }
+
+        // Log untuk memastikan data yang diterima tidak kosong
+        fmt.Printf("Data Diterima: Amount=%d, Desc=%s, Type=%s\n", t.Amount, t.Desc, t.Type)
+
+        // 3. Jalankan perintah SQL UPDATE
+        // PASTIKAN: urutan kolom ($1, $2, etc) sesuai dengan variabel (t.Amount, t.Desc, etc)
+        query := `UPDATE transactions SET amount = $1, description = $2, type = $3 WHERE id = $4`
+        result, err := db.Exec(query, t.Amount, t.Desc, t.Type, id)
+        
+        if err != nil {
+            fmt.Println("Error SQL Update:", err)
+            http.Error(w, "Gagal update database", http.StatusInternalServerError)
+            return
+        }
+
+        // 4. Verifikasi apakah ada baris yang benar-benar berubah
+        rowsAffected, _ := result.RowsAffected()
+        if rowsAffected == 0 {
+            fmt.Println("Peringatan: Tidak ada baris yang diubah. Apakah ID", id, "ada di database?")
+        } else {
+            fmt.Println("Sukses! Baris diperbarui.")
+        }
+
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(map[string]string{"message": "Data berhasil diperbarui"})
+    }
+    
+})
 
 	fmt.Println("Backend Finastriva jalan di http://localhost:8080")
 	http.ListenAndServe(":8080", nil)
