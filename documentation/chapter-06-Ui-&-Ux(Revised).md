@@ -193,29 +193,7 @@ Jika berhasil akan terlihat:
 ```
 font-family: "__Montserrat_..."
 ```
-
----
 Dengan pendekatan ini kita menciptakan **Single Source of Truth** untuk tipografi.
-
-Struktur kontrol font:
-
-```
-layout.tsx
-   ↓
-CSS Variable (--font-montserrat)
-   ↓
-Tailwind Theme (font-sans)
-   ↓
-Seluruh komponen UI
-```
-
-✅ **Hasil akhir**
-
-```
-font-sans
-→ Montserrat
-→ diterapkan ke seluruh aplikasi
-```
 
 > Jika suatu saat Finastriva ingin mengganti font (misalnya ke **Inter** atau **Geist**), kita hanya perlu mengubah konfigurasi pada `layout.tsx`.
 
@@ -469,19 +447,59 @@ Teks **FINASTRIVA** harus menggunakan font **Montserrat** yang sudah dikonfigura
 Logo harus muncul **secara instan** karena menggunakan atribut `priority`.
 
 ---
-## ✅ Checkpoint Akhir Chapter 6.1
 
-Frontend sekarang sudah mampu:
+### 🧐 Penjelasan Teknis Modifikasi
 
-* Menggunakan **font Montserrat** sebagai tipografi global
-* Menampilkan **logo Finastriva berbasis SVG**
-* Membuat **header brand modern** dengan logo dan tagline
-* Menampilkan **tanggal dashboard secara otomatis**
+1. **Integrasi Font dengan `next/font`**
+   Penggunaan `next/font/google` memungkinkan **font di-self host langsung oleh Next.js** tanpa perlu memuatnya dari CDN eksternal. Hal ini meningkatkan performa karena file font menjadi bagian dari build aplikasi dan mengurangi **Cumulative Layout Shift (CLS)** saat halaman pertama kali dirender.
+
+2. **Single Source of Truth untuk Tipografi**
+   Font Montserrat tidak langsung dipasang sebagai `font-family` di CSS. Sebaliknya, ia diubah menjadi **CSS Variable (`--font-montserrat`)** di `layout.tsx`, lalu dipetakan ke utilitas Tailwind `font-sans`.
+   Alurnya:
+
+   ```
+   next/font
+      ↓
+   CSS Variable (--font-montserrat)
+      ↓
+   Tailwind Theme (font-sans)
+      ↓
+   Seluruh komponen aplikasi
+   ```
+
+   Dengan pendekatan ini, seluruh UI akan menggunakan font yang sama secara konsisten.
+
+3. **Optimasi Asset Logo dengan `next/image`**
+   Logo tidak dimasukkan sebagai `<img>` biasa, melainkan melalui **Next.js Image Component**. Komponen ini memberikan beberapa keuntungan:
+
+   * optimasi loading otomatis
+   * pencegahan layout shift
+   * kontrol prioritas loading melalui atribut `priority`
+
+4. **SVG sebagai Format Logo Utama**
+   SVG dipilih karena **resolution-independent**. Artinya logo tetap tajam pada layar Retina, 4K, atau ketika browser di-zoom. Hal ini sangat penting untuk aplikasi dashboard yang sering ditampilkan pada monitor besar.
+
+5. **Layout Header Responsif dengan Flexbox**
+   Struktur header menggunakan `flex` dan `justify-between` agar elemen logo, teks brand, dan informasi tanggal dapat beradaptasi dengan berbagai ukuran layar. Informasi tanggal disembunyikan pada layar kecil menggunakan:
+
+   ```
+   hidden md:block
+   ```
+
+   sehingga layout tetap bersih di perangkat mobile.
+
+**Status Proyek:**
+Identitas visual **Finastriva** kini mulai terbentuk. Aplikasi sudah memiliki **tipografi global yang konsisten** serta **header profesional dengan logo dan informasi dashboard**.
+
+### ✅ Checkpoint Akhir Chapter 6.1
+
+* Font **Montserrat berhasil diintegrasikan secara global**
+* Sistem tipografi menggunakan **CSS Variable + Tailwind mapping**
+* Logo **Finastriva** berhasil ditampilkan menggunakan **Next.js Image**
+* Header dashboard kini memiliki **branding + informasi tanggal**
+* Struktur layout siap untuk pengembangan **UI dashboard berikutnya** 🚀
 
 ---
-
-
-
 
 #  Chapter 6.2 — Bento Grid Layout & Responsive Design
 
@@ -780,14 +798,212 @@ Tambahkan struktur grid berikut **tepat setelah kode header di atas**.
 
 ---
 
-## ✅ Checkpoint Akhir Chapter 6.2
+### 🧐 Penjelasan Teknis Modifikasi
+
+1. **Bento Grid Layout dengan CSS Grid**
+   Dashboard menggunakan **CSS Grid** untuk membangun layout *Bento-style*. Grid utama dikonfigurasi dengan:
+
+   ```
+   grid-cols-1 (mobile)
+   lg:grid-cols-3 (desktop)
+   ```
+
+   Artinya pada layar kecil semua card akan **stack vertikal**, sedangkan pada layar besar akan berubah menjadi **layout 3 kolom** yang lebih padat dan informatif.
+
+2. **Pengaturan Prioritas Konten dengan `col-span`**
+   Beberapa card menggunakan `lg:col-span-2` agar mengambil dua kolom sekaligus.
+   Ini memberi **hierarki visual** pada dashboard:
+
+   * Grafik analytics lebih besar
+   * Riwayat transaksi memiliki ruang lebih luas
+   * Form input tetap ringkas di sisi kiri.
+
+3. **Glassmorphism Dashboard Cards**
+   Setiap card menggunakan kombinasi:
+
+   ```
+   bg-gray-900/40
+   backdrop-blur-md
+   border border-gray-800
+   ```
+
+   Teknik ini menghasilkan efek **glassmorphism ringan** yang membuat UI terlihat modern tanpa mengganggu keterbacaan data.
+
+4. **Custom Scrollbar untuk Dark UI**
+   Daftar riwayat transaksi menggunakan class `.custom-scrollbar` dengan pseudo-element `::-webkit-scrollbar`.
+   Tujuannya agar scrollbar:
+
+   * lebih tipis
+   * konsisten dengan **tema dark mode**
+   * tidak terlihat seperti scrollbar default browser.
+
+5. **Scrollable Transaction History**
+   Card riwayat menggunakan kombinasi:
+
+   ```
+   flex flex-col
+   overflow-y-auto
+   flex-1
+   ```
+
+   sehingga konten transaksi dapat **scroll secara independen** tanpa menggeser seluruh halaman dashboard.
+
+**Status Proyek:**
+Dashboard **Finastriva** kini memiliki struktur layout profesional. Semua komponen utama telah ditempatkan dalam **Bento Grid yang responsif dan modular**.
+
+### ✅ Checkpoint Akhir Chapter 6.2
 
 * Dashboard memiliki **layout Bento Grid modern**
 * Responsif dari **mobile → desktop**
 * Scroll history **lebih estetik**
-* Struktur UI **lebih modular untuk chapter selanjutnya**
+* Struktur UI **lebih modular untuk chapter selanjutnya** 🚀
 
 ---
+# Chapter 6.3: Computed Dashboard Logic
+
+Kita akan menghidupkan kartu saldo yang sebelumnya kosong, menggunakan logika JavaScript (`reduce` dan `filter`) untuk menghitung total saldo, pemasukan, dan pengeluaran secara *real-time* dari data yang ada di state `transactions`.
+
+Berikut adalah langkah-langkah detailnya:
+
+## Step 1  —  Deklarasi Logika Kalkulasi
+Sebelum bagian `return`, kita perlu membuat variabel konstanta yang menghitung angka-angka tersebut setiap kali ada perubahan pada data transaksi.
+
+**Penempatan:** Letakkan di dalam fungsi `Home()`, tepat di atas baris `return`.
+
+```tsx
+// 6.3: LOGIKA KALKULASI SALDO
+const totalBalance = transactions.reduce((acc, t: any) => 
+  t.type === "income" ? acc + (t.amount || 0) : acc - (t.amount || 0), 0
+);
+
+const incomeTotal = transactions
+  .filter((t: any) => t.type === "income")
+  .reduce((acc, t: any) => acc + (t.amount || 0), 0);
+
+const expenseTotal = transactions
+  .filter((t: any) => t.type === "expense")
+  .reduce((acc, t: any) => acc + (t.amount || 0), 0);
+```
+
+## Step 2  —  Implementasi Card Saldo (Bento Card 1)
+Sekarang kita akan mengisi slot kosong "Card Saldo" yang kita buat di Chapter 6.2 dengan data hasil kalkulasi di atas.
+
+**Cari blok ini:**
+```tsx
+{/* --- CARD 1: SALDO (Ch 6.3) --- */}
+<div className="lg:col-span-1 ...">
+   <p className="text-gray-600 italic ...">Total Balance (Ch 6.3)</p>
+</div>
+```
+
+**Ganti dengan kode detail berikut:**
+```tsx
+{/* --- CARD 1: TOTAL BALANCE --- */}
+<div className="lg:col-span-1 bg-gray-900/40 backdrop-blur-md border border-gray-800 p-8 rounded-[2rem] shadow-2xl flex flex-col justify-center min-h-[350px]">
+  <h2 className="text-gray-500 text-sm font-bold uppercase tracking-widest mb-4">Total Balance</h2>
+  
+  {/* Saldo Utama: Berubah warna jadi merah jika minus */}
+  <p className={`text-5xl font-black tracking-tighter ${totalBalance < 0 ? 'text-red-500' : 'text-white'}`}>
+    {totalBalance < 0 ? `- Rp ${Math.abs(totalBalance).toLocaleString()}` : `Rp ${totalBalance.toLocaleString()}`}
+  </p>
+
+  {/* Indikator Income & Expense di bawah saldo */}
+  <div className="mt-8 flex items-center gap-6 border-t border-gray-800 pt-6">
+    <div className="flex flex-col">
+        <span className="text-gray-500 text-[10px] uppercase font-bold">Income</span>
+        <span className="text-green-400 font-mono font-bold">↑ Rp {incomeTotal.toLocaleString()}</span>
+    </div>
+    <div className="flex flex-col">
+        <span className="text-gray-500 text-[10px] uppercase font-bold">Expense</span>
+        <span className="text-red-400 font-mono font-bold">↓ Rp {expenseTotal.toLocaleString()}</span>
+    </div>
+  </div>
+</div>
+```
+---
+### 🧐 Penjelasan Teknis Modifikasi
+
+1. **Perhitungan Saldo dengan `.reduce()`**
+   Metode `.reduce()` digunakan untuk menghitung **total saldo secara dinamis** dari array `transactions`.
+   Setiap elemen transaksi akan diproses satu per satu:
+
+   * Jika `type === "income"` → nilai ditambahkan ke accumulator.
+   * Jika `type === "expense"` → nilai dikurangkan.
+     Dengan pendekatan ini kita tidak perlu menyimpan saldo di database, karena saldo dapat **dihitung langsung dari data transaksi**.
+
+2. **Pemanfaatan `.filter()` untuk Statistik Terpisah**
+   Untuk menampilkan total **income** dan **expense** secara terpisah, kita menggunakan `.filter()` terlebih dahulu untuk memisahkan tipe transaksi.
+   Setelah itu `.reduce()` digunakan kembali untuk menjumlahkan nominalnya.
+   Pola ini membuat logika data menjadi:
+
+   ```
+   transactions
+      ↓
+   filter by type
+      ↓
+   reduce → total
+   ```
+
+3. **Reaktivitas State React**
+   Karena `transactions` merupakan **state React**, setiap perubahan data (tambah, edit, hapus transaksi) akan memicu **re-render otomatis**.
+   Akibatnya:
+
+   * saldo utama
+   * total income
+   * total expense
+     akan **langsung diperbarui secara real-time** tanpa perlu refresh halaman.
+
+4. **Kondisional Styling untuk Saldo Negatif**
+   Bagian berikut menggunakan **conditional class**:
+
+   ```tsx
+   totalBalance < 0 ? 'text-red-500' : 'text-white'
+   ```
+
+   Jika total saldo negatif, angka akan berubah menjadi **merah**, memberikan indikator visual bahwa pengeluaran melebihi pemasukan.
+
+5. **Formatting Angka dengan `.toLocaleString()`**
+   Angka transaksi diformat menggunakan:
+
+   ```ts
+   toLocaleString()
+   ```
+
+   Ini membuat angka seperti:
+
+   ```
+   1000000
+   ```
+
+   tampil menjadi:
+
+   ```
+   1.000.000
+   ```
+
+   sehingga lebih mudah dibaca dalam konteks finansial.
+
+6. **Menghindari Duplikasi Tanda Minus dengan `Math.abs()`**
+   Ketika saldo negatif, kita menambahkan tanda `-` secara manual untuk kontrol tampilan.
+   Oleh karena itu kita menggunakan:
+
+   ```ts
+   Math.abs(totalBalance)
+   ```
+
+   agar angka tidak menjadi `--100000`.
 
 
+**Status Proyek:**
+Kartu **Total Balance** kini telah aktif. Dashboard Finastriva mampu menghitung dan menampilkan **saldo, pemasukan, dan pengeluaran secara real-time** dari data transaksi.
+
+### ✅ Checkpoint Akhir Chapter 6.3
+
+* Card **Total Balance** berhasil menampilkan saldo dinamis
+* Statistik **Income & Expense** muncul otomatis
+* Perubahan transaksi langsung memperbarui dashboard
+* Saldo negatif memiliki **indikator visual merah**
+* Sistem perhitungan finansial dashboard sudah **berfungsi penuh** 💰🚀
+
+---
 
