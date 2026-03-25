@@ -5,7 +5,7 @@ Cocok untuk mahasiswa *Engineering* yang ingin melihat perkembangan kode secara 
 
 ---
 
-# 📘 Chapter 5 – Objective Complete
+# 📘 Chapter 5 – CRUD
 
 Chapter ini fokus pada menyelesaikan objective utama Finastriva.  
 Sub-chapter saat ini:  
