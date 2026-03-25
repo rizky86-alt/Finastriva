@@ -1007,3 +1007,184 @@ Kartu **Total Balance** kini telah aktif. Dashboard Finastriva mampu menghitung 
 
 ---
 
+# Chapter 6.4: Data Visualization (Recharts)
+
+Kita akan mengisi slot "Card Analytics" yang masih kosong dengan grafik lingkaran (*Pie Chart*). Grafik ini sangat penting dalam aplikasi *fintech* untuk memberikan gambaran visual kepada pengguna mengenai proporsi alokasi dana mereka.
+
+Berikut adalah panduan detail langkah demi langkah untuk mengimplementasikannya:
+
+## **Step 1**: Instalasi dan Import Library
+Pertama, pastikan library `recharts` sudah terpasang di proyek kamu. Jika belum, jalankan `npm install recharts` di terminal. Setelah itu, tambahkan import di bagian paling atas file `page.tsx`.
+
+**Penempatan:** Di baris paling atas, bersama import lainnya.
+
+```tsx
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+```
+
+## **Step 2**: Menyiapkan Format Data Grafik
+Library Recharts membutuhkan data dalam format array objek tertentu. Kita akan menggunakan nilai `incomeTotal` dan `expenseTotal` yang sudah kita buat di Chapter 6.3.
+
+**Penempatan:** Letakkan di bawah logika kalkulasi saldo (Chapter 6.3), tepat sebelum baris `return`.
+
+```tsx
+// 6.4: FORMAT DATA UNTUK RECHARTS
+const chartData = [
+  { name: "Pemasukan", value: incomeTotal },
+  { name: "Pengeluaran", value: expenseTotal },
+];
+```
+
+### 3. Implementasi Card Analytics (Bento Card 2)
+Sekarang kita akan mengganti slot kosong "Card Analytics" dengan komponen grafik yang interaktif.
+
+**Cari blok ini:**
+```tsx
+{/* --- CARD 2: ANALYTICS (Ch 6.4) --- */}
+<div className="lg:col-span-2 ...">
+   <p className="text-gray-600 italic ...">Alokasi Dana (Ch 6.4)</p>
+</div>
+```
+
+**Ganti dengan kode detail berikut:**
+```tsx
+{/* --- CARD 2: ANALYTICS (Visualisasi Data) --- */}
+<div className="lg:col-span-2 bg-gray-900/40 backdrop-blur-md border border-gray-800 p-8 rounded-[2rem] shadow-2xl flex flex-col min-h-[350px]">
+  <h2 className="text-gray-500 text-xs font-bold uppercase tracking-[0.2em] mb-4">Alokasi Dana</h2>
+  
+  {/* Kondisi jika data masih kosong */}
+  {incomeTotal === 0 && expenseTotal === 0 ? (
+    <div className="flex-1 flex items-center justify-center text-gray-600 italic text-sm">
+      No transaction data yet.
+    </div>
+  ) : (
+    <div className="flex-1 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie 
+            data={chartData} 
+            cx="50%" 
+            cy="45%" 
+            innerRadius="65%" 
+            outerRadius="85%" 
+            paddingAngle={10} 
+            dataKey="value"
+          >
+            {/* Warna Hijau untuk Pemasukan, Merah untuk Pengeluaran */}
+            <Cell fill="#22c55e" stroke="none" />
+            <Cell fill="#ef4444" stroke="none" />
+          </Pie>
+          
+          {/* Tooltip saat kursor diarahkan ke grafik */}
+          <Tooltip 
+            contentStyle={{ 
+              backgroundColor: '#000', 
+              border: '1px solid #333', 
+              borderRadius: '12px',
+              fontSize: '12px'
+            }} 
+          />
+          
+          {/* Keterangan di bawah grafik */}
+          <Legend 
+            verticalAlign="bottom" 
+            align="center" 
+            wrapperStyle={{ paddingTop: "20px" }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  )}
+</div>
+```
+
+### 🧐 Penjelasan Teknis Modifikasi
+
+1. **Integrasi Library Recharts untuk Visualisasi Data**
+   Library `recharts` digunakan untuk menampilkan **visualisasi data finansial secara interaktif**.
+   Dibanding membuat chart manual dengan SVG atau Canvas, Recharts menyediakan komponen siap pakai seperti:
+
+   * `PieChart`
+   * `Pie`
+   * `Tooltip`
+   * `Legend`
+   * `ResponsiveContainer`
+
+   Pendekatan ini mempercepat development sekaligus menjaga **kode tetap modular dan readable**.
+
+2. **Struktur Data Chart (`chartData`)**
+   Recharts membutuhkan data dalam format **array objek** dengan key tertentu.
+   Oleh karena itu kita membentuk struktur seperti:
+
+   ```ts
+   [
+     { name: "Pemasukan", value: incomeTotal },
+     { name: "Pengeluaran", value: expenseTotal }
+   ]
+   ```
+
+   `name` digunakan oleh **Legend**, sedangkan `value` digunakan oleh `Pie` sebagai sumber data numerik.
+
+3. **Responsivitas dengan `ResponsiveContainer`**
+   Komponen `ResponsiveContainer` memastikan grafik **menyesuaikan ukuran parent container secara otomatis**.
+   Artinya grafik akan tetap proporsional baik pada:
+
+   * layar mobile
+   * tablet
+   * desktop besar
+
+   tanpa perlu menghitung ulang dimensi chart secara manual.
+
+4. **Donut Chart dengan `innerRadius`**
+   Penggunaan kombinasi:
+
+   ```
+   innerRadius="65%"
+   outerRadius="85%"
+   ```
+
+   mengubah Pie Chart menjadi **Donut Chart**.
+   Desain ini sering digunakan pada dashboard *fintech* karena:
+
+   * lebih modern secara visual
+   * memberikan ruang kosong di tengah untuk potensi data tambahan di masa depan.
+
+5. **Tooltip dan Legend untuk UX yang Lebih Baik**
+
+   * **Tooltip** menampilkan informasi nilai saat pengguna mengarahkan kursor ke grafik.
+   * **Legend** membantu pengguna memahami arti warna chart.
+
+   Dalam implementasi ini:
+
+   * **Hijau → Income**
+   * **Merah → Expense**
+
+6. **Empty State Handling**
+   Kondisi berikut:
+
+   ```tsx
+   incomeTotal === 0 && expenseTotal === 0
+   ```
+
+   digunakan untuk mencegah chart menampilkan grafik kosong.
+   Jika belum ada transaksi, dashboard akan menampilkan pesan:
+
+   ```
+   No transaction data yet.
+   ```
+
+   Ini merupakan praktik **UX penting pada dashboard data-driven**.
+
+**Status Proyek:**
+Dashboard Finastriva kini memiliki **visualisasi data finansial interaktif**. Pengguna dapat langsung memahami proporsi pemasukan dan pengeluaran melalui grafik analitik.
+
+### ✅ Checkpoint Akhir Chapter 6.4
+
+* Card **Analytics** berhasil menampilkan **Pie Chart interaktif**
+* Data grafik terhubung langsung dengan **state transaksi**
+* Chart otomatis **responsif terhadap ukuran layar**
+* Tooltip dan Legend meningkatkan **keterbacaan data**
+* Dashboard kini memiliki **lapisan analitik visual** 📊🚀
+
+---
+
