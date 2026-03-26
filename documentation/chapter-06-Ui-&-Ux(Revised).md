@@ -1185,6 +1185,463 @@ Dashboard Finastriva kini memiliki **visualisasi data finansial interaktif**. Pe
 * Chart otomatis **responsif terhadap ukuran layar**
 * Tooltip dan Legend meningkatkan **keterbacaan data**
 * Dashboard kini memiliki **lapisan analitik visual** 📊🚀
+# Chapter 6.5: Interaction Polish & Refactoring
+
+Tujuan kita adalah membuat kode lebih mudah dikelola (maintainable) dan memberikan pengalaman pengguna yang lebih halus.
+
+---
+
+## Chapter 6.5 — Langkah 1: Instalasi & Persiapan Library
+
+Sebelum menyentuh kode, kita harus memastikan *tools* yang dibutuhkan sudah terpasang. Kita akan menggunakan:
+1.  **Lucide React**: Library icon SVG yang ringan dan konsisten untuk menggantikan emoji.
+2.  **Framer Motion**: Library standar industri untuk menangani animasi di React/Next.js.
+
+#### 🛠️ Apa yang harus dilakukan:
+
+1.  Buka **Terminal** kamu.
+2.  Pastikan kamu berada di dalam direktori `frontend`.
+3.  Jalankan perintah instalasi berikut:
+
+```bash
+npm install lucide-react framer-motion
+```
+
+#### 🧐 Kenapa langkah ini penting?
+* **Emoji vs Icons**: Emoji (seperti ✏️ atau 🗑️) tampilannya berbeda-beda di setiap perangkat (Windows, Mac, Android punya desain sendiri). **Lucide Icons** memastikan tampilan icon kamu 100% sama di semua layar pengguna.
+* **User Experience (UX)**: Tanpa **Framer Motion**, perubahan UI (seperti menghapus baris) akan terasa "kasar" atau patah. Animasi membuat aplikasi terasa lebih responsif dan premium.
+
+---
+
+**Status:** Library sudah siap digunakan di dalam kode.
+
+---
+
+## Chapter 6.5 — Langkah 2: Refactoring (Komponisasi)
+
+Dalam dunia pemrograman, **Refactoring** adalah proses merapikan struktur kode tanpa mengubah fungsinya. Bayangkan `page.tsx` sebelumnya adalah sebuah gudang besar di mana semua barang (logika, saldo, grafik, form) ditumpuk jadi satu. **Komponisasi** adalah proses membagi gudang tersebut menjadi kamar-kamar khusus yang rapi.
+
+### 🔍 1. Memahami Anatomi Komponen Baru
+Ketika kita memindahkan sebuah blok `div` ke file baru, kita tidak bisa hanya "copy-paste" saja. Kita harus membungkusnya dalam sebuah **Fungsi React**. Berikut adalah penjelasan bagian-bagian yang mungkin membingungkan bagi pemula:
+
+* **`export default function NamaKomponen`**: Ini adalah cara kita memberi tahu Next.js bahwa file ini adalah sebuah "cetakan" UI yang bisa digunakan di tempat lain (dalam hal ini, di `page.tsx`).
+* **`{ total, income, expense }` (Props)**: Ini adalah "kabel penghubung". Karena data asli ada di `page.tsx`, kita butuh cara untuk mengirimkan data tersebut ke dalam komponen agar angka saldonya muncul.
+* **`interface AnalyticsProps`**: Karena kita menggunakan TypeScript, kita harus membuat "kontrak" yang menjelaskan jenis data yang masuk (misal: `income` harus berupa angka/`number`, bukan teks).
+
+### Persiapan: Struktur Folder Baru
+Pastikan struktur folder kamu terlihat seperti ini sebelum memulai:
+
+```text
+frontend/app/
+├── components/          <-- Buat folder ini
+│   ├── Header.tsx
+│   ├── BalanceCard.tsx
+│   ├── AnalyticsCard.tsx
+│   ├── TransactionForm.tsx
+│   └── TransactionList.tsx
+├── globals.css          <-- Update CSS di sini
+└── page.tsx             <-- File utama (Otak)
+
+```
+---
+
+### 📂 2. Pemisahan Komponen secara Detail
+
+---
+
+#### Langkah 1: Memindahkan Global Style
+Pindahkan CSS custom scrollbar dari tag `<style>` di `page.tsx` ke file CSS global agar bisa dipakai di mana saja.
+
+
+**Buka `app/globals.css`** dan tambahkan code berikut di bagian paling bawah:
+
+```css
+/* Custom scrollbar utility */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+```
+
+---
+
+#### Langkah 2: Membuat Komponen Presentasional (Dumb Components)
+Komponen ini tugasnya hanya menampilkan data yang dikirim dari `page.tsx`.
+
+##### **2.1 Header.tsx**
+Buat file `app/components/Header.tsx`:
+
+* **Asal Kode**: HEADER SECTION & Info Tanggal (Sisi Kanan) di `page.tsx`,
+* **Isi File (`frontend/app/components/Header.tsx`)**:
+* **Tugas:** Menampilkan logo dan tanggal.
+* **Kabel (Props):** Tidak butuh karena datanya statis.
+
+```tsx
+import Image from "next/image";
+
+export default function Header() {
+  return (
+      {/* ... (Copy bagian Header section & Info Tanggal (Sisi Kanan) dari page.tsx lama) ... */}
+      <div className="hidden md:block text-right">
+        <p className="text-xs text-gray-500 uppercase tracking-widest font-medium">Dashboard Overview</p>
+        <p className="text-sm text-gray-400 font-mono">
+          {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+        </p>
+      </div>
+    </div>
+  );
+}
+```
+
+##### **2.2 BalanceCard.tsx**
+Buat file `app/components/BalanceCard.tsx`:
+Kita memindahkan bagian yang menghitung dan menampilkan uang kamu.
+
+* **Asal Kode**: Blok Card 1 di `page.tsx`.
+* **Tugas:** Menampilkan ringkasan saldo.
+* **Kabel (Props):** `total`, `income`, `expense`.
+* **Isi File (`frontend/app/components/BalanceCard.tsx`)**:
+
+```tsx
+export default function BalanceCard({ total, income, expense }: { total: number, income: number, expense: number }) {
+  return (
+      {/* ... (Copy bagian Balance Card dari page.tsx lama) ... */}
+  );
+}
+```
+##### **2.3 AnalyticsCard.tsx `(Grafik Lingkaran)`**
+Buat file `app/components/AnalyticsCard.tsx`:
+Bagian ini lebih kompleks karena melibatkan library pihak ketiga.
+
+* **Asal Kode**: Blok Card 2 di `page.tsx` yang menggunakan `recharts`.
+* **Penting**: Baris `import { PieChart... }` harus dipindahkan dari `page.tsx` ke file ini agar komponen tahu cara menggambar grafik.
+* **Tugas:** Menampilkan ringkasan saldo.
+* **Kabel (Props):** `income`, `expense`,`chartData`.
+* **Isi File (`frontend/app/components/AnalyticsCard.tsx`)**:
+
+```tsx
+// Library ini harus di-import di sini karena div di bawah membutuhkannya
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+
+// Kita mendefinisikan 'kontrak' data agar TypeScript tidak error
+interface AnalyticsProps {
+  income: number;
+  expense: number;
+  chartData: any[];
+}
+
+export default function AnalyticsCard({ income, expense, chartData }: AnalyticsProps) {
+  return (
+    <div className="lg:col-span-2 bg-gray-900/40 backdrop-blur-md border border-gray-800 p-8 rounded-[2rem] shadow-2xl flex flex-col min-h-[350px]">
+      <h2 className="text-gray-500 text-xs font-bold uppercase tracking-[0.2em] mb-4">Alokasi Dana</h2>
+      
+      {/* Logika pengecekan data kosong tetap dipertahankan */}
+      {income === 0 && expense === 0 ? (
+        <div className="flex-1 flex items-center justify-center text-gray-600 italic text-sm">No transaction data yet.</div>
+      ) : (
+        <div className="flex-1 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={chartData} cx="50%" cy="45%" innerRadius="65%" outerRadius="85%" paddingAngle={10} dataKey="value">
+                <Cell fill="#22c55e" stroke="none" />
+                <Cell fill="#ef4444" stroke="none" />
+              </Pie>
+              <Tooltip contentStyle={{ backgroundColor: '#000', border: '1px solid #333', borderRadius: '12px', fontSize: '12px' }} />
+              <Legend verticalAlign="bottom" align="center" wrapperStyle={{ paddingTop: "20px" }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+---
+
+#### Langkah 3: Membuat Komponen Interaktif (Smart Components)
+Komponen ini butuh fungsi (function) agar tombolnya bisa bekerja.
+
+##### **3.1 TransactionForm.tsx**
+Buat file `app/components/TransactionForm.tsx`:
+Card ini adalah yang paling kompleks karena memiliki banyak "kabel" (State dan Fungsi) yang harus disambungkan.
+
+* **Asal Kode**: Blok Card 3 di `page.tsx`.
+* **Kabel (Props):** State input (`desc`, `amount`, `type`) dan fungsi (`onSubmit`, `onCancel`).
+* **Isi File (`app/components/TransactionForm.tsx`)**:
+
+```tsx
+import React from "react";
+
+interface TransactionFormProps {
+  editingId: number | null;
+  desc: string;
+  setDesc: (val: string) => void;
+  amount: number;
+  setAmount: (val: number) => void;
+  type: string;
+   // ... tambahkan props lainnya sesuai kode yang benar jika ada tambahan
+  setType: (val: string) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+}
+
+export default function TransactionForm({
+  editingId,
+  desc,
+  setDesc,
+  amount,
+  setAmount,
+  type,
+  setType,
+  onSubmit,
+  onCancel,
+  //...props yang lainnya
+}: TransactionFormProps) {
+  return (
+    <div className="lg:col-span-1 bg-gray-900/40 backdrop-blur-md border border-gray-800 p-8 rounded-[2rem] shadow-2xl h-fit">
+      <h3 className="text-xl font-black mb-8 tracking-tight">
+        {editingId ? "Edit Transaction" : "New Transaction"}
+      </h3>
+      
+       {/* ... (Input fields tetap terhubung ke props) ... */}
+      <div className="flex gap-2 mb-6 bg-black/50 p-1.5 rounded-2xl border border-gray-800">
+        <button
+          onClick={() => setType("income")}
+          className={`flex-1 py-2.5 rounded-xl font-bold transition-all ${
+            type === "income" ? "bg-green-600 text-white shadow-lg" : "text-gray-500 hover:text-white"
+          }`}
+        >
+          Income
+        </button>
+        <button
+          onClick={() => setType("expense")}
+          className={`flex-1 py-2.5 rounded-xl font-bold transition-all ${
+            type === "expense" ? "bg-red-600 text-white shadow-lg" : "text-gray-500 hover:text-white"
+          }`}
+        >
+          Expense
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="text-[10px] text-gray-500 uppercase font-black ml-1">Keterangan</label>
+          <input
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+            className="w-full p-4 mt-1 rounded-2xl bg-gray-800/50 border border-gray-700 focus:border-blue-500 outline-none transition-all"
+            placeholder="Beli Kopi..."
+          />
+        </div>
+        <div>
+          <label className="text-[10px] text-gray-500 uppercase font-black ml-1">Nominal (IDR)</label>
+          <input
+            value={amount === 0 ? "" : amount}
+            type="number"
+            onChange={(e) => setAmount(Number(e.target.value))}
+            className="w-full p-4 mt-1 rounded-2xl bg-gray-800/50 border border-gray-700 focus:border-blue-500 outline-none transition-all font-mono text-lg"
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      <button
+        onClick={onSubmit}
+        className="w-full mt-8 bg-blue-600 p-4 rounded-2xl font-black text-white hover:bg-blue-500 transition-all shadow-xl shadow-blue-900/30"
+      >
+        {editingId ? "UPDATE DATA" : "SAVE TRANSACTION"}
+      </button>
+      {editingId && (
+        <button
+          onClick={onCancel}
+          className="w-full mt-4 text-gray-500 text-xs font-bold hover:text-white transition"
+        >
+          CANCEL EDIT
+        </button>
+      )}
+    </div>
+  );
+}
+
+```
+
+##### **3.2 TransactionList.tsx**
+Buat file `app/components/TransactionList.tsx`:
+Card ini berfungsi untuk menampilkan (membaca) dan memberikan akses untuk menghapus/mengedit.
+
+* **Asal Kode**: Blok Card 4 di `page.tsx`.
+* **Kabel (Props):** `transactions` (array), `onEdit`, `onDelete`.
+* **Isi File (`app/components/TransactionList.tsx`)**:
+
+
+
+```tsx
+import React from "react";
+
+interface TransactionListProps {
+  transactions: any[];
+  onEdit: (t: any) => void;
+  onDelete: (id: number) => void;
+}
+export default function TransactionList({ transactions, onEdit, onDelete }: TransactionListProps) {
+  return (
+    <div className="lg:col-span-2 bg-gray-900/40 backdrop-blur-md border border-gray-800 p-8 rounded-[2rem] shadow-2xl h-[488px] flex flex-col">
+      <div className="flex justify-between items-center mb-8 flex-shrink-0">
+        <h3 className="text-xl font-black tracking-tight">Recent History</h3>
+        <span className="bg-gray-800 px-3 py-1 rounded-full text-[10px] font-bold text-gray-400">
+          {transactions.length} items
+        </span>
+      </div>
+
+      <div className="flex-1 overflow-y-auto pr-3 space-y-4 custom-scrollbar">
+        {transactions.length === 0 ? (
+          <div className="text-gray-600 text-center py-20 border-2 border-dashed border-gray-800 rounded-3xl text-sm">
+            No transaction records.
+          </div>
+        ) : (
+          transactions
+            .slice()
+            .reverse()
+            .map((t: any) => (
+              <div
+                key={t.id}
+                className="bg-gray-800/30 p-5 rounded-2xl flex justify-between items-center border border-gray-800/50 hover:border-gray-700 transition-all group"
+              >
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
+                      t.type === "income"
+                        ? "bg-green-500/10 text-green-500"
+                        : "bg-red-500/10 text-red-500"
+                    }`}
+                  >
+                    {t.type === "income" ? "↓" : "↑"}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-white font-bold group-hover:text-blue-400 transition-colors">
+                      {t.desc}
+                    </span>
+                    <span className="text-gray-500 text-[10px] font-medium font-mono">
+                      {new Date(t.created_at).toLocaleDateString("id-ID", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-6">
+                  <span
+                    className={`font-mono text-lg font-black ${
+                      t.type === "income" ? "text-green-400" : "text-red-400"
+                    }`}
+                  >
+                    {t.type === "income" ? "+ " : "- "} Rp {t.amount.toLocaleString()}
+                  </span>
+                  <div className="flex gap-3 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => onEdit(t)} className="text-gray-500 hover:text-blue-400 transition">
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => onDelete(t.id)}
+                      className="text-gray-500 hover:text-red-400 transition"
+                    >
+                      🗑
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+```
+
+---
+
+#### Langkah 4: Menyatukan Semuanya di `page.tsx` (The Brain)
+
+Setelah membuat file-file di atas, kita harus "memanggil" mereka di file utama agar muncul di layar. Hapus semua HTML yang panjang dan ganti dengan komponen-komponen yang baru dibuat.
+
+1.  **Hapus** baris `import { PieChart... }` dan sejenisnya dari bagian atas `page.tsx`.
+2.  **Tambahkan** baris import untuk komponen baru kita:
+    ```tsx
+    import BalanceCard from "./components/BalanceCard";
+    import AnalyticsCard from "./components/AnalyticsCard";
+    ```
+3.  **Ganti** kode Card 1 & Card 2 yang panjang di bagian `return` dengan baris singkat ini:
+
+
+```tsx
+"use client";
+import { useState, useEffect } from "react";
+// 1. Import semua komponen
+import Header from "./components/Header";
+import BalanceCard from "./components/BalanceCard";
+// ... import lainnya
+
+export default function Home() {
+  // 2. Simpan State & Logika API di sini (Tetap seperti kode lama)
+  const [transactions, setTransactions] = useState([]);
+  
+  // 3. Render Komponen dengan mengoper Props
+  return (
+    <main className="flex min-h-screen flex-col bg-black text-white font-sans antialiased">
+      <Header />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl w-full mx-auto px-6 pb-20">
+        <BalanceCard 
+          total={totalBalance} 
+          income={incomeTotal} 
+          expense={expenseTotal} 
+        />
+
+        <AnalyticsCard 
+          income={incomeTotal} 
+          expense={expenseTotal} 
+          chartData={chartData} 
+        />
+
+        <TransactionForm
+          editingId={editingId}
+          desc={desc}
+          setDesc={setDesc}
+          amount={amount}
+          setAmount={setAmount}
+          type={type}
+          setType={setType}
+          onSubmit={tambahTransaksi}
+          onCancel={handleCancelEdit}
+        />
+
+        <TransactionList 
+          transactions={transactions} 
+          onEdit={startEdit} 
+          onDelete={hapusTransaksi} 
+        />
+      </div>
+    </main>
+  );
+}
+
+```
+
+---
 
 ---
 
