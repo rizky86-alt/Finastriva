@@ -1,9 +1,6 @@
 # 🚀 Finastriva Fullstack Project
 
-Dokumentasi ini dibuat untuk **tracking progres coding step-by-step** dan penggunaan Git di project **Finastriva**.  
-Cocok untuk mahasiswa *Engineering* yang ingin melihat perkembangan kode secara bertahap saat memprompt AI.
-
-
+Dokumentasi ini dibuat untuk **tracking progres coding step-by-step**.
 
 ---
 # 📘 Chapter 2 – Git Workflow & Panduan Lengkap
