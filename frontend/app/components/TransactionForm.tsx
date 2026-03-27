@@ -7,6 +7,7 @@ interface TransactionFormProps {
   amount: number;
   setAmount: (val: number) => void;
   type: string;
+   // ... tambahkan props lainnya sesuai kode yang benar jika ada tambahan
   setType: (val: string) => void;
   onSubmit: () => void;
   onCancel: () => void;
@@ -22,13 +23,15 @@ export default function TransactionForm({
   setType,
   onSubmit,
   onCancel,
+  //...props yang lainnya
 }: TransactionFormProps) {
   return (
     <div className="lg:col-span-1 bg-gray-900/40 backdrop-blur-md border border-gray-800 p-8 rounded-[2rem] shadow-2xl h-fit">
       <h3 className="text-xl font-black mb-8 tracking-tight">
         {editingId ? "Edit Transaction" : "New Transaction"}
       </h3>
-
+      
+       {/* ... (Input fields tetap terhubung ke props) ... */}
       <div className="flex gap-2 mb-6 bg-black/50 p-1.5 rounded-2xl border border-gray-800">
         <button
           onClick={() => setType("income")}

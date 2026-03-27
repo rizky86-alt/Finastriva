@@ -1,4 +1,5 @@
 import React from "react";
+import { Pencil, Trash2, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 
 interface TransactionListProps {
   transactions: any[];
@@ -38,7 +39,7 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Tran
                         : "bg-red-500/10 text-red-500"
                     }`}
                   >
-                    {t.type === "income" ? "↓" : "↑"}
+                    {t.type === "income" ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
                   </div>
                   <div className="flex flex-col">
                     <span className="text-white font-bold group-hover:text-blue-400 transition-colors">
@@ -62,15 +63,13 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Tran
                     {t.type === "income" ? "+ " : "- "} Rp {t.amount.toLocaleString()}
                   </span>
                   <div className="flex gap-3 lg:opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => onEdit(t)} className="text-gray-500 hover:text-blue-400 transition">
-                      ✏️
-                    </button>
-                    <button
-                      onClick={() => onDelete(t.id)}
-                      className="text-gray-500 hover:text-red-400 transition"
-                    >
-                      🗑
-                    </button>
+                  <button onClick={() => onEdit(t)} className="text-gray-500 hover:text-blue-400 transition">
+                    <Pencil size={18} />
+                  </button>
+
+                  <button onClick={() => onDelete(t.id)} className="text-gray-500 hover:text-red-400 transition">
+                    <Trash2 size={18} />
+                  </button>
                   </div>
                 </div>
               </div>
