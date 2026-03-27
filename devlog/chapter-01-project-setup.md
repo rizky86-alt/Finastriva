@@ -1,16 +1,11 @@
 # 🚀 Finastriva Fullstack Project
 
-Selamat datang di dokumentasi **Fullstack Finastriva**! 🎉  
-Dokumentasi ini dibuat agar kamu bisa melihat **perkembangan penulisan kode secara bertahap** saat memprompt AI.  
-
-Backend menggunakan **Golang**, sedangkan Frontend menggunakan **Next.js**. Struktur dibuat bersih agar mudah dikembangkan.
+**Dokumentasi ini dibuat untuk tracking progress code step by step.**
 
 ---
 
-
-## 📁 Struktur Proyek
-
-
+# 📘 Chapter 1 – Backend & Frontend Setup
+📁 Setup Struktur Proyek
 ```
 
 finastriva/
@@ -20,17 +15,7 @@ finastriva/
 │   └── app/page.tsx
 └── README.md
 
-````
-
-
-
-
-
-
-
----
-
-# 📘 Chapter 1 – Backend & Frontend Setup
+```
 
 ## 1️⃣ Inisialisasi Folder Backend
 
