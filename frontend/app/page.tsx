@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion"; // Diambil dari library framer-motion yang diinstall di Langkah 1
 import Header from "./components/Header";
 import BalanceCard from "./components/BalanceCard";
 import AnalyticsCard from "./components/AnalyticsCard";
@@ -107,7 +108,13 @@ export default function Home() {
     <main className="flex min-h-screen flex-col bg-black text-white font-sans antialiased">
       <Header />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl w-full mx-auto px-6 pb-20">
+      {/* 6.2: GRID DASHBOARD UTAMA - SEKARANG BERANIMASI */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} // Keadaan Awal: Tidak terlihat (opacity 0) dan agak ke bawah (y: 20px)
+        animate={{ opacity: 1, y: 0 }}   // Keadaan Akhir: Terlihat penuh dan kembali ke posisi asli
+        transition={{ duration: 0.5, delay: 0.2 }} // Mengatur durasi animasi 0.5 detik dan delay 0.2 detik agar terasa halus
+        className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl w-full mx-auto px-6 pb-20"
+      >
         <BalanceCard 
           total={totalBalance} 
           income={incomeTotal} 
@@ -137,7 +144,7 @@ export default function Home() {
           onEdit={startEdit} 
           onDelete={hapusTransaksi} 
         />
-      </div>
+      </motion.div> {/* <-- Pastikan tag penutupnya juga motion.div */}
     </main>
   );
 }

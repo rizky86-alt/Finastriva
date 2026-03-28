@@ -1,4 +1,5 @@
 import React from "react";
+import { PlusCircle, CheckCircle } from "lucide-react";
 
 interface TransactionFormProps {
   editingId: number | null;
@@ -73,12 +74,13 @@ export default function TransactionForm({
         </div>
       </div>
 
-      <button
-        onClick={onSubmit}
-        className="w-full mt-8 bg-blue-600 p-4 rounded-2xl font-black text-white hover:bg-blue-500 transition-all shadow-xl shadow-blue-900/30"
+          <button 
+        onClick={onSubmit} 
+        className="w-full mt-8 bg-blue-600 p-4 rounded-2xl font-black text-white hover:bg-blue-500 active:scale-[0.98] transition-all shadow-xl shadow-blue-900/30 flex items-center justify-center gap-2"
       >
+        {editingId ? <CheckCircle size={20} /> : <PlusCircle size={20} />}
         {editingId ? "UPDATE DATA" : "SAVE TRANSACTION"}
-      </button>
+      </button> 
       {editingId && (
         <button
           onClick={onCancel}

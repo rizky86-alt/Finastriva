@@ -1,4 +1,5 @@
 import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, Trash2, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 
 interface TransactionListProps {
@@ -16,21 +17,29 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Tran
           {transactions.length} items
         </span>
       </div>
-
+      
       <div className="flex-1 overflow-y-auto pr-3 space-y-4 custom-scrollbar">
         {transactions.length === 0 ? (
           <div className="text-gray-600 text-center py-20 border-2 border-dashed border-gray-800 rounded-3xl text-sm">
             No transaction records.
           </div>
         ) : (
-          transactions
-            .slice()
-            .reverse()
-            .map((t: any) => (
-              <div
-                key={t.id}
-                className="bg-gray-800/30 p-5 rounded-2xl flex justify-between items-center border border-gray-800/50 hover:border-gray-700 transition-all group"
-              >
+        <AnimatePresence initial={false}> 
+          {transactions.slice().reverse().map((t: any) => (
+
+              <motion.div
+                  key={t.id}
+                  // 1. Posisi awal (sebelum muncul): Pudar dan agak ke bawah
+                  initial={{ opacity: 0, y: 15 }}
+                  // 2. Posisi aktif (saat ada di layar): Terlihat penuh dan di posisi normal
+                  animate={{ opacity: 1, y: 0 }}
+                  // 3. Posisi keluar (saat dihapus): Pudar dan mengecil
+                  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                  // 4. Efek Interaksi: Sedikit membesar saat kursor di atasnya
+                  whileHover={{ scale: 1.01, backgroundColor: "rgba(31, 41, 55, 0.5)" }}
+                  
+                  className="bg-gray-800/30 p-5 rounded-2xl flex justify-between items-center border border-gray-800/50 transition-all group cursor-pointer"
+                >
                 <div className="flex items-center gap-4">
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
@@ -72,9 +81,10 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Tran
                   </button>
                   </div>
                 </div>
-              </div>
-            ))
-        )}
+                </motion.div>
+            ))}
+          </AnimatePresence>
+          )}
       </div>
     </div>
   );
