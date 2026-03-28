@@ -1,6 +1,7 @@
 # 🚀 Finastriva Fullstack Project
 
 **Dokumentasi ini dibuat untuk tracking progres coding step-by-step**.
+
 ---
 
 # 📘 Chapter 6 – UI & UX (Revised)
