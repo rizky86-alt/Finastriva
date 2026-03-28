@@ -1,8 +1,6 @@
 # 🚀 Finastriva Fullstack Project
 
-Dokumentasi ini dibuat untuk **tracking progres coding step-by-step** dan penggunaan Git di project **Finastriva**.
-Cocok untuk mahasiswa *Engineering* yang ingin melihat perkembangan kode secara bertahap saat mem-prompt AI.
-
+**Dokumentasi ini dibuat untuk tracking progres coding step-by-step**.
 ---
 
 # 📘 Chapter 6 – UI & UX (Revised)
@@ -15,7 +13,7 @@ Sub-chapter saat ini:
 2. **Fase 6.2**: Bento Grid Layout & Responsive Design
 3. **Fase 6.3**: Computed Dashboard Logic
 4. **Fase 6.4**: Data Visualization (Charts)
-5. **Fase 6.5**: Interaction Polish & Refactoring
+5. **Fase 6.5**: UI Refinement (Icon, Motion, & Refactoring)
 
 **Goal Chapter:**
 Membuat tampilan yang terasa seperti **produk fintech modern**.
@@ -1185,7 +1183,10 @@ Dashboard Finastriva kini memiliki **visualisasi data finansial interaktif**. Pe
 * Chart otomatis **responsif terhadap ukuran layar**
 * Tooltip dan Legend meningkatkan **keterbacaan data**
 * Dashboard kini memiliki **lapisan analitik visual** 📊🚀
-# Chapter 6.5: Interaction Polish & Refactoring
+
+---
+
+# Chapter 6.5: UI Refinement (Icon, Motion, & Refactoring)
 
 Tujuan kita adalah membuat kode lebih mudah dikelola (maintainable) dan memberikan pengalaman pengguna yang lebih halus.
 
@@ -1206,15 +1207,6 @@ Sebelum menyentuh kode, kita harus memastikan *tools* yang dibutuhkan sudah terp
 ```bash
 npm install lucide-react framer-motion
 ```
-
-#### 🧐 Kenapa langkah ini penting?
-* **Emoji vs Icons**: Emoji (seperti ✏️ atau 🗑️) tampilannya berbeda-beda di setiap perangkat (Windows, Mac, Android punya desain sendiri). **Lucide Icons** memastikan tampilan icon kamu 100% sama di semua layar pengguna.
-* **User Experience (UX)**: Tanpa **Framer Motion**, perubahan UI (seperti menghapus baris) akan terasa "kasar" atau patah. Animasi membuat aplikasi terasa lebih responsif dan premium.
-
----
-
-**Status:** Library sudah siap digunakan di dalam kode.
-
 ---
 
 ## Chapter 6.5 — Langkah 2: Refactoring (Komponisasi)
@@ -1640,8 +1632,458 @@ export default function Home() {
 }
 
 ```
+---
+
+
+
+## Chapter 6.5 — Langkah 3: Mengintegrasikan Lucide Icons
+
+Setelah pada Langkah 2 kita memecah kode menjadi komponen-komponen kecil, sekarang kita akan memberikan sentuhan profesional pada tampilan visualnya. Kita akan membuang emoji standar (seperti ✏️ dan 🗑️) dan menggantinya dengan icon SVG dari library lucide-react yang sudah kita instal di Langkah 1.
+
+## 🎯 1. Target: components/TransactionList.tsx
+Di file ini, kita memiliki tiga elemen yang menggunakan teks/emoji manual:
+
+1. Indikator Panah: Sebelumnya menggunakan karakter teks ↑ dan ↓.
+2. Tombol Edit: Sebelumnya menggunakan emoji ✏️.
+3. Tombol Hapus: Sebelumnya menggunakan emoji 🗑.
+
+### A. Menambahkan Import
+
+Buka file **frontend/app/components/TransactionList.tsx**. Tambahkan baris import berikut di bagian paling atas:
+
+**TypeScript**
+
+```ts
+import { Pencil, Trash2, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+```
+
+### B. Mengubah Bagian Render List (Step-by-Step)
+
+Cari bagian di dalam `.map()` tempat panah dan tombol berada. Kita akan menggantinya dengan komponen Icon.
+
+#### 1. Mengganti Panah Tipe Transaksi
+
+* **Asal Kode:** `{t.type === "income" ? "↓" : "↑"}`
+* **Perubahan:** Kita ganti teks tersebut dengan komponen `<ArrowDownLeft />` (untuk uang masuk) dan `<ArrowUpRight />` (untuk uang keluar).
+
+Kode yang harus diubah:
+
+**TypeScript**
+
+```ts
+{/* Cari blok ini di baris 22 */}
+<div className={`w-10 h-10 ...`}>
+  {t.type === "income" ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
+</div>
+```
+
+#### 2. Mengganti Emoji Tombol Edit
+
+* **Asal Kode:** ✏️
+* **Perubahan:** Ganti dengan komponen `<Pencil />`. Kita beri ukuran `size={18}` agar pas dengan ukuran tombol.
+
+Kode yang harus diubah:
+
+**TypeScript**
+
+```ts
+<button onClick={() => onEdit(t)} className="text-gray-500 hover:text-blue-400 transition">
+  <Pencil size={18} />
+</button>
+```
+
+#### 3. Mengganti Emoji Tombol Hapus
+
+* **Asal Kode:** 🗑
+* **Perubahan:** Ganti dengan komponen `<Trash2 />`.
+
+Kode yang harus diubah:
+
+**TypeScript**
+
+```ts
+<button onClick={() => onDelete(t.id)} className="text-gray-500 hover:text-red-400 transition">
+  <Trash2 size={18} />
+</button>
+```
 
 ---
+
+## 🎯 2. Target: components/TransactionForm.tsx
+Kita juga bisa mempercantik tombol simpan agar lebih informatif dengan menambahkan icon.
+
+### A. Menambahkan Import
+
+Buka **frontend/app/components/TransactionForm.tsx**. Tambahkan import ini:
+
+**TypeScript**
+
+```ts
+import { PlusCircle, CheckCircle } from "lucide-react";
+```
+
+### B. Mengubah Button Simpan
+
+Ganti konten di dalam `<button onClick={onSubmit} ...>`:
+
+**TypeScript**
+
+```ts
+<button 
+  onClick={onSubmit} 
+  className="w-full mt-8 bg-blue-600 p-4 rounded-2xl font-black text-white hover:bg-blue-500 active:scale-[0.98] transition-all shadow-xl shadow-blue-900/30 flex items-center justify-center gap-2"
+>
+  {editingId ? <CheckCircle size={20} /> : <PlusCircle size={20} />}
+  {editingId ? "UPDATE DATA" : "SAVE TRANSACTION"}
+</button>
+```
+
+---
+
+##  Chapter 6.5 — Langkah 4: Menambahkan Animasi Halus dengan Framer Motion
+
+Setelah pada Langkah 2 kita merapikan struktur kode menjadi komponen-komponen mandiri, dan pada Langkah 3 kita mempercantik visual dengan Icon Lucide, sekarang saatnya memberikan sentuhan akhir : **Animasi**.
+
+Tanpa animasi, elemen UI muncul dan hilang secara instan (patah-patah). Dengan tools yang sudah kita instal di Langkah 1, kita akan membuat transisi tersebut menjadi halus (smooth), memberikan umpan balik visual yang lebih baik kepada pengguna.
+
+Kita akan menerapkan animasi pada dua area utama:
+1.  **Dashboard Entrance**: Kartu-kartu utama (Balance, Analytics, Form) akan muncul perlahan saat halaman pertama kali dimuat.
+2.  **Transaction List Interactivity**: Item pada daftar riwayat akan muncul (slide-in) saat ditambahkan, dan menghilang (fade-out) saat dihapus.
+
+> Pada langkah ini kita akan membuat UI terasa **lebih halus dan responsif** menggunakan **Framer Motion**.
+
+---
+### Konsep Dasar (Wajib Dipahami)
+
+Sebelum menulis kode, pahami tiga konsep ini.
+
+#### 1. `motion`
+
+`motion` adalah versi animasi dari elemen HTML.
+
+Contoh:
+
+```tsx
+<div>
+```
+
+menjadi
+
+```tsx
+<motion.div>
+```
+
+---
+
+#### 2. `initial` dan `animate`
+
+Menentukan **posisi awal** dan **posisi akhir animasi**.
+
+```
+initial → kondisi sebelum muncul
+animate → kondisi setelah muncul
+```
+
+---
+
+#### 3. `AnimatePresence`
+
+Digunakan agar animasi **tetap berjalan saat elemen dihapus**.
+
+Tanpa ini, React akan **langsung menghapus elemen dari DOM**, sehingga animasi `exit` tidak sempat dijalankan.
+
+---
+
+### Step 1 — Import Framer Motion
+
+Tambahkan di bagian atas file:
+
+```ts
+import { motion } from "framer-motion";
+```
+
+---
+
+#### 🎯 1. Target: Dashboard Entrance di `page.tsx`
+
+Kita ingin seluruh Grid Bento muncul perlahan (fade-in) dari bawah saat aplikasi dibuka.
+
+---
+
+##### **A. Menambahkan Import**
+
+>Buka file `frontend/app/page.tsx`. Tambahkan import library animasi di bagian paling atas:
+
+```tsx
+import { motion } from "framer-motion"; // Diambil dari library framer-motion yang diinstall di Langkah 1
+```
+
+##### **B. Mengubah Container Grid Utama**
+Cari tag `div` yang menjadi container utama grid Bento kamu (sekitar baris 75 di kode `page.tsx` yang bersih). Kita akan mengubah `div` biasa menjadi `motion.div`.
+
+**Asal Kode (`page.tsx`)**:
+```tsx
+{/* 6.2: GRID DASHBOARD UTAMA */}
+<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl w-full mx-auto px-6 pb-20">
+  {/* ... isi kartu-kartu ... */}
+</div>
+```
+
+**Perubahan (Menjadi `motion.div` dengan Properti Animasi)**:
+Ubah tag pembuka dan penutupnya, lalu tambahkan properti `initial`, `animate`, dan `transition`.
+
+```tsx
+{/* 6.2: GRID DASHBOARD UTAMA - SEKARANG BERANIMASI */}
+<motion.div 
+  initial={{ opacity: 0, y: 20 }} // Keadaan Awal: Tidak terlihat (opacity 0) dan agak ke bawah (y: 20px)
+  animate={{ opacity: 1, y: 0 }}   // Keadaan Akhir: Terlihat penuh dan kembali ke posisi asli
+  transition={{ duration: 0.5, delay: 0.2 }} // Mengatur durasi animasi 0.5 detik dan delay 0.2 detik agar terasa halus
+  className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl w-full mx-auto px-6 pb-20"
+>
+  {/* ... isi kartu-kartu (BalanceCard, AnalyticsCard, dll) ... */}
+</motion.div> {/* <-- Pastikan tag penutupnya juga motion.div */}
+```
+
+#### Penjelasan
+
+| Properti  | Fungsi                   |
+| --------- | ------------------------ |
+| opacity:0 | mulai transparan         |
+| y:20      | posisi 20px lebih bawah  |
+| animate   | kembali ke posisi normal |
+| duration  | lama animasi             |
+| delay     | jeda sebelum animasi     |
+
+---
+
+#### 🎯 2. Target: List Interactivity di `components/TransactionList.tsx`
+
+Ini adalah bagian paling krusial. Kita ingin item transaksi beranimasi saat ditambahkan (muncul dari bawah) dan saat dihapus (mengecil dan memudar).
+
+##### **A. Menambahkan Import**
+Buka file `frontend/app/components/TransactionList.tsx` (gunakan kode yang sudah bersih dari Langkah 3). Tambahkan import animasi:
+
+```tsx
+import { motion, AnimatePresence } from "framer-motion";
+```
+
+##### **B. Implementasi Animasi pada Loop List (Super Detail)**
+
+Di sinilah kita perlu berhati-hati dengan struktur tag. Kita harus membungkus **seluruh area list** dengan `AnimatePresence`, dan mengubah **wrapper item individu** menjadi `motion.div`.
+
+**Asal Kode (`TransactionList.tsx`)**:
+```tsx
+<div className="flex-1 overflow-y-auto pr-3 space-y-4 custom-scrollbar">
+  {transactions.length === 0 ? (
+    // ... No records ...
+  ) : (
+    transactions.slice().reverse().map((t: any) => (
+      {/* Wrapper Item Individu yang akan diubah */}
+      <div key={t.id} className="bg-gray-800/30 ... transition-all group">
+        {/* ... isi item ... */}
+      </div>
+    ))
+  )}
+</div>
+```
+
+###### 1) Bungkus List Dengan AnimatePresence
+
+Cari bagian list transaksi.
+
+Struktur sebelumnya:
+
+```tsx
+{transactions.map((t) => (
+```
+
+Ubah menjadi:
+
+```tsx
+<AnimatePresence initial={false}>
+  {transactions.map((t) => (
+```
+
+###### 2) Ubah div Menjadi motion.div
+
+Sebelumnya:
+
+```tsx
+<div key={t.id}>
+```
+
+Ubah menjadi:
+
+```tsx
+<motion.div
+  key={t.id}
+  initial={{ opacity: 0, y: 15 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+  whileHover={{ scale: 1.01 }}
+>
+```
+
+**Perubahan (Menjadi `motion` dengan `AnimatePresence`)**:
+Berikut adalah perubahan detailnya. Perhatikan penempatan `AnimatePresence` yang berada **di luar** loop `.map()` namun **di dalam** area scrollable.
+
+```tsx
+<div className="flex-1 overflow-y-auto pr-3 space-y-4 custom-scrollbar">
+  {transactions.length === 0 ? (
+    // ... No records ...
+  ) : (
+    // 1. ANTIMATE PRESENCE: Wajib ada agar animasi EXIT (saat hapus) berfungsi
+    <AnimatePresence initial={false}> 
+      {transactions.slice().reverse().map((t: any) => (
+        
+        // 2. MENGUBAH div MENJADI motion.div
+        <motion.div
+          key={t.id} // Key wajib sama dengan id database agar framer-motion tahu item mana yang beranimasi
+          
+          // Konfigurasi Animasi
+          initial={{ opacity: 0, y: 15 }} // Muncul: Mulai dari pudar dan agak ke bawah
+          animate={{ opacity: 1, y: 0 }}   // Masuk: Fade-in dan slide-up ke posisi asli
+          exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }} // Hapus: Pudar, mengecil, durasi cepat
+          
+          // Hover Effect Premium (Mengganti Tailwind hover)
+          whileHover={{ scale: 1.01, backgroundColor: "rgba(55, 65, 81, 0.4)" }} // Sedikit membesar dan background lebih terang saat disorot
+          
+          // Tailwind class tetap sama, hanya hapus "hover:" yang manual
+          className="bg-gray-800/30 p-5 rounded-2xl flex justify-between items-center border border-gray-800/50 transition-all group cursor-pointer"
+        >
+          {/* ... isi item asli (div panah, desc, nominal, button edit/hapus) tetap sama seperti Langkah 3 ... */}
+        </motion.div>
+      ))}
+    </AnimatePresence>
+  )}
+</div>
+```
+
+---
+
+### 🧐 Penjelasan Teknis Modifikasi
+
+1. **Refactoring dengan Arsitektur Komponen (Component-Based Architecture)**
+   Pada chapter ini, file `page.tsx` yang sebelumnya berisi seluruh logika dan tampilan dashboard dipecah menjadi beberapa komponen terpisah. Pendekatan ini mengikuti prinsip **separation of concerns**, di mana setiap komponen memiliki tanggung jawab spesifik.
+   Hasilnya:
+
+   ```
+   page.tsx (Brain / Controller)
+        ↓
+   Header
+   BalanceCard
+   AnalyticsCard
+   TransactionForm
+   TransactionList
+   ```
+
+   Dengan struktur ini, `page.tsx` hanya bertugas mengelola **state, API call, dan data flow**, sedangkan komponen lain fokus pada **presentasi UI**.
+
+2. **Pemisahan Smart Component dan Presentational Component**
+   Arsitektur komponen juga membedakan dua tipe komponen utama:
+
+   **Presentational Components (Dumb Components)**
+   Hanya menerima data melalui props dan menampilkan UI.
+
+   Contoh:
+
+   * `Header`
+   * `BalanceCard`
+   * `AnalyticsCard`
+
+   **Smart Components (Interactive Components)**
+   Berinteraksi dengan state dan fungsi dari parent.
+
+   Contoh:
+
+   * `TransactionForm`
+   * `TransactionList`
+
+   Pola ini membuat alur data lebih jelas karena mengikuti konsep **unidirectional data flow** pada React.
+
+3. **Props sebagai Jalur Komunikasi Antar Komponen**
+   Karena data utama tetap berada di `page.tsx`, komponen lain menerima data melalui **props**.
+   Props bertindak seperti kabel yang menghubungkan komponen parent dengan child.
+
+   Contoh alur data:
+
+   ```
+   page.tsx
+      ↓
+   <BalanceCard total={total} income={income} expense={expense} />
+      ↓
+   BalanceCard.tsx
+   ```
+
+   Dengan pendekatan ini, state tetap terpusat sehingga **data tetap sinkron di seluruh UI**.
+
+4. **Standarisasi Icon dengan Lucide React**
+   Emoji digantikan dengan icon dari **Lucide React** yang berbasis SVG.
+   Keuntungan penggunaan icon library ini:
+
+   * ukuran bundle kecil
+   * konsistensi desain
+   * dapat dikontrol melalui props (`size`, `color`)
+   * kompatibel dengan sistem styling React dan Tailwind
+
+   Karena icon adalah **komponen React**, mereka dapat langsung digunakan seperti:
+
+   ```tsx
+   <Pencil size={18} />
+   ```
+
+   Hal ini membuat UI terlihat lebih profesional dibandingkan penggunaan emoji standar.
+
+5. **Integrasi Animasi Deklaratif dengan Framer Motion**
+   Framer Motion digunakan untuk memberikan animasi **tanpa manipulasi DOM manual**.
+   Library ini bekerja secara deklaratif, artinya animasi didefinisikan langsung di dalam komponen.
+
+   Contoh pola dasar animasi:
+
+   ```
+   initial   → kondisi awal
+   animate   → kondisi setelah muncul
+   exit      → kondisi saat elemen dihapus
+   ```
+
+   Dengan kombinasi `motion` dan `AnimatePresence`, React dapat menjalankan animasi **saat komponen muncul maupun saat dihapus dari DOM**, sesuatu yang tidak dapat dilakukan dengan CSS biasa.
+
+   Penerapan animasi pada dashboard meliputi:
+
+   * **Entrance Animation** pada grid dashboard
+   * **List Animation** saat transaksi ditambahkan atau dihapus
+   * **Hover Interaction** pada item transaksi
+
+   Hasilnya adalah pengalaman UI yang lebih **halus, responsif, dan modern**.
+
+6. **Centralized Styling melalui Global CSS Utility**
+   Custom scrollbar yang sebelumnya berada di dalam `page.tsx` dipindahkan ke `globals.css`.
+   Tujuannya adalah menjadikan style tersebut sebagai **utility global** yang dapat digunakan oleh komponen mana pun.
+
+   Pendekatan ini mencegah:
+
+   * duplikasi style
+   * inline CSS yang sulit dirawat
+   * inkonsistensi tampilan antar komponen
+
+---
+
+**Status Proyek:**
+Dashboard **Finastriva** kini telah mengalami peningkatan signifikan pada aspek **arsitektur kode, konsistensi UI, dan interaktivitas pengguna**. Struktur komponen menjadi lebih modular, ikon visual telah distandarisasi menggunakan Lucide, dan animasi halus dari Framer Motion memberikan pengalaman dashboard yang lebih modern dan profesional.
+
+---
+
+### ✅ Checkpoint Akhir Chapter 6.5
+
+* Struktur dashboard berhasil **direfactor menjadi arsitektur komponen modular**
+* `page.tsx` kini berfungsi sebagai **controller utama (state & logic center)**
+* Dibuat **5 komponen utama**: Header, BalanceCard, AnalyticsCard, TransactionForm, dan TransactionList
+* Sistem komunikasi antar komponen menggunakan **props TypeScript yang terstruktur**
+* Emoji UI berhasil digantikan dengan **icon SVG dari Lucide React**
+* Animasi dashboard berhasil diimplementasikan menggunakan **Framer Motion**
+* Item transaksi kini memiliki **animasi masuk, keluar, dan hover interaktif**
+* Global styling seperti **custom scrollbar dipindahkan ke `globals.css`**
+* Struktur kode menjadi **lebih scalable, maintainable, dan siap untuk fitur lanjutan** 🚀
 
 ---
 
