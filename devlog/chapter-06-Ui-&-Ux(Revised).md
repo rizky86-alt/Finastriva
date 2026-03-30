@@ -714,9 +714,8 @@ Tambahkan struktur grid berikut **tepat setelah kode header di atas**.
 
         transactions
           .slice()
-          .reverse()
           .map((t: any) => (
-
+        
           <div
             key={t.id}
             className="bg-gray-800/30 p-5 rounded-2xl flex justify-between items-center border border-gray-800/50 hover:border-gray-700 transition-all group"
@@ -1506,7 +1505,6 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Tran
         ) : (
           transactions
             .slice()
-            .reverse()
             .map((t: any) => (
               <div
                 key={t.id}
@@ -1622,8 +1620,9 @@ export default function Home() {
           onCancel={handleCancelEdit}
         />
 
-        <TransactionList 
-          transactions={transactions} 
+        <TransactionList
+        //Menggunakan fungsi `.slice(0, 5)` untuk membatasi array transaksi hanya pada 5 item pertama (terbaru).
+          transactions={transactions.slice(0, 5)} 
           onEdit={startEdit} 
           onDelete={hapusTransaksi} 
         />
@@ -1878,7 +1877,7 @@ Di sinilah kita perlu berhati-hati dengan struktur tag. Kita harus membungkus **
   {transactions.length === 0 ? (
     // ... No records ...
   ) : (
-    transactions.slice().reverse().map((t: any) => (
+    transactions.slice().map((t: any) => (
       {/* Wrapper Item Individu yang akan diubah */}
       <div key={t.id} className="bg-gray-800/30 ... transition-all group">
         {/* ... isi item ... */}
@@ -1940,7 +1939,7 @@ Berikut adalah perubahan detailnya. Perhatikan penempatan `AnimatePresence` yang
   ) : (
     // 1. ANTIMATE PRESENCE: Wajib ada agar animasi EXIT (saat hapus) berfungsi
     <AnimatePresence initial={false}> 
-      {transactions.slice().reverse().map((t: any) => (
+      {transactions.slice().map((t: any) => (
         
         // 2. MENGUBAH div MENJADI motion.div
         <motion.div
@@ -2191,7 +2190,7 @@ Lalu ubah isi conditional rendering menjadi:
   </div>
 ) : (
   <AnimatePresence initial={false}>
-    {transactions.slice().reverse().map((t: any) => (
+    {transactions.slice().map((t: any) => (
       <motion.div key={t.id}>
         {/* Konten transaksi */}
       </motion.div>
@@ -2272,7 +2271,7 @@ Ubah menjadi:
 
 ```tsx
 <TransactionList
-  transactions={transactions}
+  transactions={transactions.slice(0, 5)} 
   onEdit={startEdit}
   onDelete={hapusDelete}
   isLoading={isLoading}
