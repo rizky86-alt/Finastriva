@@ -1917,11 +1917,16 @@ Ubah menjadi:
 
 ```tsx
 <motion.div
-  key={t.id}
-  initial={{ opacity: 0, y: 15 }}
-  animate={{ opacity: 1, y: 0 }}
-  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-  whileHover={{ scale: 1.01 }}
+    key={t.id}
+    initial={{ opacity: 0, y: 15 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.0 } }}
+    // 1. Added zIndex to ensure the scaled item stays on top of neighbors
+    whileHover={{ 
+      scale: 1.01, 
+      backgroundColor: "rgba(31, 41, 55, 0.5)",
+      zIndex: 10
+    }}
 >
 ```
 
@@ -1945,12 +1950,24 @@ Berikut adalah perubahan detailnya. Perhatikan penempatan `AnimatePresence` yang
           initial={{ opacity: 0, y: 15 }} // Muncul: Mulai dari pudar dan agak ke bawah
           animate={{ opacity: 1, y: 0 }}   // Masuk: Fade-in dan slide-up ke posisi asli
           exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }} // Hapus: Pudar, mengecil, durasi cepat
+
+        <motion.div
+            key={t.id} // Key wajib sama dengan id database agar framer-motion tahu item mana yang beranimasi
+
+          // Konfigurasi Animasi
+          initial={{ opacity: 0, y: 15 }} // Muncul: Mulai dari pudar dan agak ke bawah
+          animate={{ opacity: 1, y: 0 }}   // Masuk: Fade-in dan slide-up ke posisi asli
+          exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }} // Hapus: Pudar, mengecil, durasi cepat
           
           // Hover Effect Premium (Mengganti Tailwind hover)
-          whileHover={{ scale: 1.01, backgroundColor: "rgba(55, 65, 81, 0.4)" }} // Sedikit membesar dan background lebih terang saat disorot
+           whileHover={{ 
+            scale: 1.01, 
+            backgroundColor: "rgba(31, 41, 55, 0.5)",
+            zIndex: 10   // Added zIndex to ensure the scaled item stays on top of neighbors
+          }} // Sedikit membesar dan background lebih terang saat disorot
           
           // Tailwind class tetap sama, hanya hapus "hover:" yang manual
-          className="bg-gray-800/30 p-5 rounded-2xl flex justify-between items-center border border-gray-800/50 transition-all group cursor-pointer"
+            className="bg-gray-800/30 p-5 rounded-2xl flex justify-between items-center border border-gray-800/50 group cursor-pointer relative"
         >
           {/* ... isi item asli (div panah, desc, nominal, button edit/hapus) tetap sama seperti Langkah 3 ... */}
         </motion.div>
@@ -2074,6 +2091,206 @@ Dashboard **Finastriva** kini telah mengalami peningkatan signifikan pada aspek 
 
 ---
 
+## Chapter 6.5 — Langkah 5: Skeleton Loading (Detail)
+
+Setelah aplikasi kita memiliki struktur yang rapi (Langkah 2), ikon profesional (Langkah 3), dan animasi halus (Langkah 4), ada satu masalah kecil: saat pertama kali dibuka, daftar transaksi akan terlihat kosong selama sepersekian detik sebelum data muncul dari backend. Ini bisa membuat user mengira aplikasi *error*. 
+
+**Skeleton Loading** adalah solusi standar industri yang menampilkan kotak-kotak bayangan berdenyut sebagai tanda bahwa data sedang "dalam perjalanan".
+
+Kita akan memodifikasi dua file: `page.tsx` untuk mengelola status loading, dan `TransactionList.tsx` untuk menampilkan animasinya.
+
+#### **1. Membuat Komponen Skeleton di `TransactionList.tsx`**
+Kita akan membuat tampilan "palsu" yang berdenyut menggunakan Framer Motion.
+
+**Buka `frontend/app/components/TransactionList.tsx`:**
+Kita akan membuat sub-komponen kecil di dalam file ini untuk menghemat tempat.
+
+> Cari interface props dan tambahkan `isLoading`.Agar **TypeScript tidak error**.
+
+```tsx
+interface TransactionListProps {
+  transactions: any[];
+  onEdit: (t: any) => void;
+  onDelete: (id: number) => void;
+  isLoading: boolean;
+}
+```
+
+>Masih di file yang sama (`TransactionList.tsx`), tambahkan komponen berikut **di bawah bagian import dan di atas function utama**. Komponen ini menampilkan **baris transaksi palsu yang berdenyut**.
+
+Contoh struktur file:
+
+```
+imports
+SkeletonItem
+interface TransactionListProps
+TransactionList()
+```
+
+Tambahkan kode berikut:
+
+```tsx
+const SkeletonItem = () => (
+  <motion.div
+    animate={{ opacity: [0.3, 0.6, 0.3] }}
+    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+    className="bg-gray-800/20 p-5 rounded-2xl flex justify-between items-center border border-gray-800/50 h-20 w-full"
+  >
+    <div className="flex items-center gap-4">
+      <div className="w-10 h-10 rounded-xl bg-gray-700/50" />
+
+      <div className="flex flex-col gap-2">
+        <div className="h-4 w-32 bg-gray-700/50 rounded" />
+        <div className="h-3 w-20 bg-gray-700/50 rounded" />
+      </div>
+    </div>
+
+    <div className="h-6 w-24 bg-gray-700/50 rounded" />
+  </motion.div>
+);
+```
+> Update Function utama & Props untuk menerima status loading
+
+```tsx
+export default function TransactionList({ transactions, onEdit, onDelete, isLoading }: TransactionListProps & { isLoading: boolean }) {
+  return (
+    <div className="...">
+      {/* Isi kode */}
+  );
+}
+```
+---
+
+#### **2. Implementasi Logika Tampilan**
+
+Sekarang kita perlu membuat komponen menampilkan **3 kondisi berbeda**:
+
+1️⃣ Loading
+2️⃣ Data kosong
+3️⃣ Data tersedia
+
+Cari bagian ini di dalam `TransactionList()`:
+
+```tsx
+<div className="flex-1 overflow-y-auto pr-3 space-y-4 custom-scrollbar">
+```
+
+Lalu ubah isi conditional rendering menjadi:
+
+```tsx
+
+{isLoading ? (
+  <div className="space-y-4">
+    {Array.from({ length: 3 }).map((_, i) => (
+      <SkeletonItem key={i} />
+    ))}
+  </div>
+) : transactions.length === 0 ? (
+  <div className="text-gray-600 text-center py-20 border-2 border-dashed border-gray-800 rounded-3xl text-sm">
+    No transaction records.
+  </div>
+) : (
+  <AnimatePresence initial={false}>
+    {transactions.slice().reverse().map((t: any) => (
+      <motion.div key={t.id}>
+        {/* Konten transaksi */}
+      </motion.div>
+    ))}
+  </AnimatePresence>
+)}
+```
+
+---
+
+#### **3. Menyiapkan State Loading di `page.tsx`**
+
+##### 1) Tambahkan state `isLoading` di bagian atas bersama state lainnya.
+Pertama, kita perlu membuat **state loading** agar aplikasi tahu kapan data sedang diambil.
+
+Buka:
+
+```
+frontend/app/page.tsx
+```
+
+Tambahkan state berikut di dalam `function Home()`:
+
+```tsx
+const [transactions, setTransactions] = useState([]);
+const [isLoading, setIsLoading] = useState(true);
+```
+
+`true` digunakan sebagai default karena saat halaman pertama kali dibuka, data **belum tersedia**.
+
+---
+##### 2) Update fungsi `fetchTransactions`
+
+Ubah fungsi fetch agar mengatur status loading.
+
+```tsx
+const fetchTransactions = async () => {
+  setIsLoading(true);
+
+  try {
+    const res = await fetch("http://localhost:8080/api/transactions");
+    const data = await res.json();
+    setTransactions(data || []);
+  } catch (err) {
+    console.error("Gagal ambil data:", err);
+  } finally {
+    setIsLoading(false);
+  }
+};
+```
+
+###### Kenapa menggunakan `finally`?
+
+Karena `finally` akan selalu dijalankan:
+
+* saat request berhasil
+* saat request gagal
+
+Ini memastikan **loading tidak akan pernah stuck**.
+
+---
+
+##### 3) Mengirim `isLoading` ke Komponen TransactionList
+
+Sekarang kita perlu mengirim status loading ke komponen daftar transaksi.
+
+Cari bagian ini di `page.tsx`:
+
+```tsx
+<TransactionList
+  transactions={transactions}
+  onEdit={handleEdit}
+  onDelete={handleDelete}
+/>
+```
+
+Ubah menjadi:
+
+```tsx
+<TransactionList
+  transactions={transactions}
+  onEdit={startEdit}
+  onDelete={hapusDelete}
+  isLoading={isLoading}
+/>
+
+```
+
+Sekarang komponen `TransactionList` bisa mengetahui apakah data sedang dimuat.
+
+
+### 🧐 Apa yang Kita Capai di Langkah Terakhir Ini?
+
+* **Perceived Performance**: Meskipun waktu loading database PostgreSQL kamu sama, aplikasi terasa lebih cepat karena user langsung melihat "sesuatu" (Skeleton) tanpa layar kosong.
+* **Visual Continuity**: Bentuk `SkeletonItem` sengaja kita buat mirip dengan baris transaksi asli agar saat data muncul, perpindahannya tidak terasa mengejutkan.
+* **Engineering Best Practice**: Menggunakan `finally` pada `fetch` memastikan indikator loading akan mati meskipun terjadi error pada jaringan.
+
+---
+
 ### ✅ Checkpoint Akhir Chapter 6.5
 
 * Struktur dashboard berhasil **direfactor menjadi arsitektur komponen modular**
@@ -2085,6 +2302,35 @@ Dashboard **Finastriva** kini telah mengalami peningkatan signifikan pada aspek 
 * Item transaksi kini memiliki **animasi masuk, keluar, dan hover interaktif**
 * Global styling seperti **custom scrollbar dipindahkan ke `globals.css`**
 * Struktur kode menjadi **lebih scalable, maintainable, dan siap untuk fitur lanjutan** 🚀
+  
+---
+
+# ✅ Chapter 6 Complete
+
+Frontend **Finastriva** sekarang sudah memiliki fitur modern:
+
+| Feature                  | Implemented |
+| ------------------------ | ----------- |
+| Branding UI              | ✅           |
+| Responsive Bento Layout  | ✅           |
+| Auto Balance Calculation | ✅           |
+| Chart Visualization      | ✅           |
+| Smooth Animations        | ✅           |
+| Skeleton Loading         | ✅           |
+
+Aplikasi sekarang **tidak lagi terasa seperti CRUD latihan**, tetapi seperti **fintech dashboard sungguhan**.
 
 ---
+
+
+### ✅ Penutup Chapter 6: Mission Accomplished!
+
+Kamu telah berhasil mentransformasi **Finastriva** dari sebuah latihan CRUD dasar menjadi **Fintech Dashboard** kelas atas:
+1.  **Ch 6.1**: Branding & Identitas Visual.
+2.  **Ch 6.2**: Layout Bento Grid yang Responsif.
+3.  **Ch 6.3**: Logika Kalkulasi Saldo Otomatis.
+4.  **Ch 6.4**: Visualisasi Data dengan Recharts.
+5.  **Ch 6.5**: Polish Interaksi, Refactoring, & Skeleton Loading.
+
+
 
