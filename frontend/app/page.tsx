@@ -13,14 +13,19 @@ export default function Home() {
   const [desc, setDesc] = useState("");
   const [type, setType] = useState("expense");
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchTransactions = async () => {
+    setIsLoading(true);
+  
     try {
       const res = await fetch("http://localhost:8080/api/transactions");
       const data = await res.json();
       setTransactions(data || []);
     } catch (err) {
       console.error("Gagal ambil data:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -143,6 +148,7 @@ export default function Home() {
           transactions={transactions} 
           onEdit={startEdit} 
           onDelete={hapusTransaksi} 
+          isLoading={isLoading}
         />
       </motion.div> {/* <-- Pastikan tag penutupnya juga motion.div */}
     </main>

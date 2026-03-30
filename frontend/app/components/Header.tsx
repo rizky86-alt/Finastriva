@@ -6,6 +6,7 @@ export default function Header() {
       <header className="flex items-center gap-4 group">
         <div className="relative p-2 bg-gray-900 rounded-xl border border-gray-800 group-hover:border-blue-500/50 transition-all duration-300 shadow-2xl">
           <Image src="/logo-finastriva.svg" alt="Logo" width={42} height={42} priority />
+          
         </div>
         <div className="flex flex-col">
           <h1 className="text-2xl font-black tracking-tighter text-white leading-none">FINASTRIVA</h1>
