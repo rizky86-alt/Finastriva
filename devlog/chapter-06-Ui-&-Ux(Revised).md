@@ -714,8 +714,9 @@ Tambahkan struktur grid berikut **tepat setelah kode header di atas**.
 
         transactions
           .slice()
-          .map((t: any) => (
-        
+          .reverse()
+          .map((t: Transaction) => (
+
           <div
             key={t.id}
             className="bg-gray-800/30 p-5 rounded-2xl flex justify-between items-center border border-gray-800/50 hover:border-gray-700 transition-all group"
@@ -870,17 +871,17 @@ Sebelum bagian `return`, kita perlu membuat variabel konstanta yang menghitung a
 
 ```tsx
 // 6.3: LOGIKA KALKULASI SALDO
-const totalBalance = transactions.reduce((acc, t: any) => 
+const totalBalance = transactions.reduce((acc, t) => 
   t.type === "income" ? acc + (t.amount || 0) : acc - (t.amount || 0), 0
 );
 
 const incomeTotal = transactions
-  .filter((t: any) => t.type === "income")
-  .reduce((acc, t: any) => acc + (t.amount || 0), 0);
+  .filter((t) => t.type === "income")
+  .reduce((acc, t) => acc + (t.amount || 0), 0);
 
 const expenseTotal = transactions
-  .filter((t: any) => t.type === "expense")
-  .reduce((acc, t: any) => acc + (t.amount || 0), 0);
+  .filter((t) => t.type === "expense")
+  .reduce((acc, t) => acc + (t.amount || 0), 0);
 ```
 
 ## Step 2  —  Implementasi Card Saldo (Bento Card 1)
@@ -1328,7 +1329,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recha
 interface AnalyticsProps {
   income: number;
   expense: number;
-  chartData: any[];
+  chartData: { name: string; value: number }[];
 }
 
 export default function AnalyticsCard({ income, expense, chartData }: AnalyticsProps) {
@@ -1482,9 +1483,17 @@ Card ini berfungsi untuk menampilkan (membaca) dan memberikan akses untuk mengha
 ```tsx
 import React from "react";
 
+interface Transaction {
+  id: number;
+  amount: number;
+  desc: string;
+  type: string;
+  created_at: string;
+}
+
 interface TransactionListProps {
-  transactions: any[];
-  onEdit: (t: any) => void;
+  transactions: Transaction[];
+  onEdit: (t: Transaction) => void;
   onDelete: (id: number) => void;
 }
 export default function TransactionList({ transactions, onEdit, onDelete }: TransactionListProps) {
@@ -1505,7 +1514,9 @@ export default function TransactionList({ transactions, onEdit, onDelete }: Tran
         ) : (
           transactions
             .slice()
-            .map((t: any) => (
+            .reverse()
+            .map((t: Transaction) => (
+
               <div
                 key={t.id}
                 className="bg-gray-800/30 p-5 rounded-2xl flex justify-between items-center border border-gray-800/50 hover:border-gray-700 transition-all group"
@@ -1586,9 +1597,17 @@ import Header from "./components/Header";
 import BalanceCard from "./components/BalanceCard";
 // ... import lainnya
 
+interface Transaction {
+  id: number;
+  amount: number;
+  desc: string;
+  type: string;
+  created_at: string;
+}
+
 export default function Home() {
   // 2. Simpan State & Logika API di sini (Tetap seperti kode lama)
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   
   // 3. Render Komponen dengan mengoper Props
   return (
@@ -1877,7 +1896,8 @@ Di sinilah kita perlu berhati-hati dengan struktur tag. Kita harus membungkus **
   {transactions.length === 0 ? (
     // ... No records ...
   ) : (
-    transactions.slice().map((t: any) => (
+    transactions.slice().reverse().map((t: Transaction) => (
+
       {/* Wrapper Item Individu yang akan diubah */}
       <div key={t.id} className="bg-gray-800/30 ... transition-all group">
         {/* ... isi item ... */}
@@ -1937,9 +1957,9 @@ Berikut adalah perubahan detailnya. Perhatikan penempatan `AnimatePresence` yang
   {transactions.length === 0 ? (
     // ... No records ...
   ) : (
-    // 1. ANTIMATE PRESENCE: Wajib ada agar animasi EXIT (saat hapus) berfungsi
     <AnimatePresence initial={false}> 
-      {transactions.slice().map((t: any) => (
+      {transactions.slice().reverse().map((t: Transaction) => (
+
         
         // 2. MENGUBAH div MENJADI motion.div
         <motion.div
@@ -2107,9 +2127,17 @@ Kita akan membuat sub-komponen kecil di dalam file ini untuk menghemat tempat.
 > Cari interface props dan tambahkan `isLoading`.Agar **TypeScript tidak error**.
 
 ```tsx
+interface Transaction {
+  id: number;
+  amount: number;
+  desc: string;
+  type: string;
+  created_at: string;
+}
+
 interface TransactionListProps {
-  transactions: any[];
-  onEdit: (t: any) => void;
+  transactions: Transaction[];
+  onEdit: (t: Transaction) => void;
   onDelete: (id: number) => void;
   isLoading: boolean;
 }
@@ -2151,7 +2179,7 @@ const SkeletonItem = () => (
 > Update Function utama & Props untuk menerima status loading
 
 ```tsx
-export default function TransactionList({ transactions, onEdit, onDelete, isLoading }: TransactionListProps & { isLoading: boolean }) {
+export default function TransactionList({ transactions, onEdit, onDelete, isLoading }: TransactionListProps) {
   return (
     <div className="...">
       {/* Isi kode */}
@@ -2190,7 +2218,8 @@ Lalu ubah isi conditional rendering menjadi:
   </div>
 ) : (
   <AnimatePresence initial={false}>
-    {transactions.slice().map((t: any) => (
+    {transactions.slice().reverse().map((t: Transaction) => (
+
       <motion.div key={t.id}>
         {/* Konten transaksi */}
       </motion.div>

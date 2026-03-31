@@ -2,9 +2,17 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, Trash2, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 
+interface Transaction {
+  id: number;
+  amount: number;
+  desc: string;
+  type: string;
+  created_at: string;
+}
+
 interface TransactionListProps {
-  transactions: any[];
-  onEdit: (t: any) => void;
+  transactions: Transaction[];
+  onEdit: (t: Transaction) => void;
   onDelete: (id: number) => void;
   isLoading: boolean;
 }
@@ -56,7 +64,7 @@ export default function TransactionList({ transactions, onEdit, onDelete, isLoad
         </div>
       ) : (  
       <AnimatePresence initial={false}> 
-          {transactions.slice().reverse().map((t: any) => (
+          {transactions.slice().map((t: Transaction) => (
 
              <motion.div
             key={t.id} // Key wajib sama dengan id database agar framer-motion tahu item mana yang beranimasi

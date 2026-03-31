@@ -272,7 +272,7 @@ Tambahkan fitur berikut:
 Update komponen render:
 
 ```tsx
-{transactions.map((t: any) => (
+{transactions.map((t: Transaction) => (
   <div
     key={t.id}
     className={`bg-gray-900 p-4 rounded-lg flex justify-between border-l-4 ${
@@ -359,8 +359,16 @@ http://localhost:3000
 "use client";
 import { useState, useEffect } from "react";
 
+interface Transaction {
+  id: number;
+  amount: number;
+  desc: string;
+  type: string;
+  created_at: string;
+}
+
 export default function Home() {
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [amount, setAmount] = useState(0);
   const [desc, setDesc] = useState("");
   const [type, setType] = useState("expense");
@@ -454,7 +462,7 @@ export default function Home() {
           Riwayat Transaksi
         </h2>
 
-        {transactions.map((t: any) => (
+        {transactions.map((t: Transaction) => (
           <div
             key={t.id}
             className={`bg-gray-900 p-4 rounded-lg flex justify-between border-l-4 ${
@@ -658,7 +666,7 @@ Tambahkan fitur berikut:
 Update komponen render:
 
 ```tsx
-{transactions.map((t: any) => (
+{transactions.map((t: Transaction) => (
   <div
     key={t.id}
     className={`bg-gray-900 p-4 rounded-lg flex justify-between border-l-4 ${
@@ -745,8 +753,16 @@ http://localhost:3000
 "use client";
 import { useState, useEffect } from "react";
 
+interface Transaction {
+  id: number;
+  amount: number;
+  desc: string;
+  type: string;
+  created_at: string;
+}
+
 export default function Home() {
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [amount, setAmount] = useState(0);
   const [desc, setDesc] = useState("");
   const [type, setType] = useState("expense");
@@ -840,7 +856,7 @@ export default function Home() {
           Riwayat Transaksi
         </h2>
 
-        {transactions.map((t: any) => (
+        {transactions.map((t: Transaction) => (
           <div
             key={t.id}
             className={`bg-gray-900 p-4 rounded-lg flex justify-between border-l-4 ${
@@ -1096,10 +1112,10 @@ Penjelasan:
 
 # Step 4: Tambahkan Tombol Hapus
 
-Cari bagian `.map((t: any) => ...)` dan tambahkan tombol sampah (atau teks "Hapus") di dalamnya.Perhatikan urutannya:
+Cari bagian `.map((t: Transaction) => ...)` dan tambahkan tombol sampah (atau teks "Hapus") di dalamnya.Perhatikan urutannya:
 
 ```tsx
-{transactions.map((t: any) => (
+{transactions.map((t: Transaction) => (
   <div key={t.id} className="...">
     <div className="flex flex-col">
       <span className="text-white font-medium">{t.desc}</span>
@@ -1342,7 +1358,7 @@ Tambahkan fungsi berikut.
 
 Fungsi ini dipicu saat tombol "Edit" di baris transaksi diklik.
 ```tsx
-const startEdit = (t: any) => {
+const startEdit = (t: Transaction) => {
   setEditingId(t.id); // Tandai bahwa kita masuk mode edit untuk ID ini
   setDesc(t.desc);    // Masukkan keterangan lama ke input
   setAmount(t.amount);// Masukkan nominal lama ke input

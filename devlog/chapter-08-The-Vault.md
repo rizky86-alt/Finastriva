@@ -1,3 +1,22 @@
+
+# 🚀 Finastriva Fullstack Project
+
+**Dokumentasi ini dibuat untuk tracking progres coding step-by-step.**
+
+---
+
+# 📘 Chapter 8 – The Vault: Financial Archive & Live Analytics
+
+Setelah membangun sistem navigasi di Chapter 7, sekarang saatnya kita membangun fitur **The Vault**. 
+
+Berbeda dengan Dashboard yang berfokus pada transaksi harian, The Vault dirancang sebagai arsip besar yang "pintar". Kita akan mengimplementasikan fitur pencarian mendalam, statistik yang berubah secara *live* mengikuti pencarian, dan sistem pembagian halaman (pagination).
+
+---
+
+## Full Source Code (Copy-Paste)
+
+```tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -306,3 +325,203 @@ export default function VaultPage() {
     </main>
   );
 }
+
+```
+
+> ✅ **Checkpoint 8.0:** Copy-paste ke project kamu, jalankan, dan lihat hasil “The Vault” secara penuh.
+
+---
+
+## 🗺️ Roadmap Chapter 8 (The Archive Journey)
+
+| Langkah | Fokus Utama | Deskripsi |
+| :--- | :--- | :--- |
+| **1** | **The Skeleton** | Setup TypeScript Interface dan koneksi ke API database. |
+| **2** | **Live Analytics** | Membuat statistik yang berubah secara cerdas mengikuti hasil pencarian. |
+| **3** | **Stats Cards** | Desain visual kartu informasi yang mewah dan interaktif. |
+| **4** | **Archive Engine** | Sistem pencarian (Search) dan filter kategori (Income/Expense). |
+| **5** | **The Premium Table** | Menampilkan data dalam tabel dengan animasi transisi yang halus. |
+| **6** | **Tailwind Tutorial** | Bedah desain (Glassmorphism, Layouting, Interaksi). |
+| **7** | **Premium Pagination** | Menjaga halaman tetap rapi dengan membagi data menjadi beberapa halaman. |
+
+---
+
+## Interactive Step-by-Step Analysis
+
+Di bawah, setiap langkah ada **“Mini Challenge”** agar pembaca aktif:
+
+### 🛠️ Langkah 1: The Skeleton (Pondasi Aman)
+
+Kita mulai dengan menentukan "aturan main" untuk data kita menggunakan **TypeScript Interface**. Ini memastikan aplikasi tidak akan error jika ada data yang salah format. Setelah itu, kita siapkan "lemari" (state) untuk menyimpan data.
+
+```tsx
+// Aturan data transaksi
+interface Transaction {
+  id: number;
+  amount: number;
+  desc: string;
+  type: "income" | "expense";
+  created_at: string;
+}
+
+// State untuk menyimpan data
+const [transactions, setTransactions] = useState<Transaction[]>([]);
+const [isLoading, setIsLoading] = useState(true);
+```
+**Tujuan:** Memastikan aplikasi punya data structure dan koneksi API.
+
+**Mini Challenge:**
+
+* Tambahkan state baru: `const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);`
+* Apa efeknya jika kita gunakan `selectedTransaction` di tabel?
+
+✅ **Checkpoint 8.1:** Pondasi data siap dan aplikasi terhubung dengan database secara aman.
+
+---
+
+### 🛠️ Langkah 2: Live Analytics (Smart Intelligence)
+
+Fitur ini membuat Vault terasa "hidup". Statistik di atas tidak hanya menunjukkan total seumur hidup, tapi **Total dari apa yang sedang Anda cari**. 
+
+**Logikanya:** Kita menghitung dari `filteredData`, bukan dari semua data.
+
+```tsx
+const totalIncome = filteredData
+  .filter((t) => t.type === "income")
+  .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+const netBalance = totalIncome - totalExpense;
+```
+
+**Tujuan:** Hitung total income, expense, dan net balance berdasarkan filter/search.
+
+**Mini Challenge:**
+
+1. Ubah `filteredData` agar hanya menghitung transaksi bulan ini (`created_at`).
+2. Amati perubahan angka pada kartu statistik.
+
+✅ **Checkpoint 8.2:** Kartu statistik kini reaktif dan berubah secara otomatis saat Anda mengetik di Search Bar.
+
+---
+
+### 🛠️ Langkah 3: Desain Kartu Statistik (Premium Visuals)
+
+Kita mendesain 3 kartu utama (Net, Income, Expense) dengan sentuhan profesional:
+- **Warna:** Biru, Hijau, dan Merah yang lembut.
+- **Background Ikon:** Ikon raksasa yang transparan di pojok kanan bawah kartu.
+- **Interaksi:** Kartu akan bergeser naik (`whileHover={{ y: -5 }}`) saat disentuh kursor.
+
+**Tujuan:** Menampilkan kartu Net, Income, Expense interaktif dengan Motion hover.
+
+**Mini Challenge:**
+
+* Ganti ikon pada kartu Net Balance dengan `TrendingUp`.
+* Coba ubah warna `bg-blue-600/10` menjadi `bg-purple-500/10`.
+* Apa efeknya terhadap UX?
+
+✅ **Checkpoint 8.3:** UI statistik tampil mewah seperti aplikasi bank modern.
+
+---
+
+### 🛠️ Langkah 4: Archive Engine (Pencarian & Filter)
+
+Pengguna bisa mencari data berdasarkan deskripsi dan memilah kategori. Kita juga menambahkan **Smart Reset** agar halaman otomatis kembali ke nomor 1 saat pengguna mulai mencari (agar hasil tidak tersembunyi di halaman lain).
+
+```tsx
+const filteredData = transactions.filter((t) => {
+  const matchSearch = t.desc.toLowerCase().includes(searchTerm.toLowerCase());
+  const matchType = filterType === "all" || t.type === filterType;
+  return matchSearch && matchType;
+});
+
+// Reset ke halaman 1 jika filter berubah
+useEffect(() => {
+  setCurrentPage(1);
+}, [searchTerm, filterType]);
+```
+**Tujuan:** Filter transaksi dan search by description.
+
+**Mini Challenge:**
+
+1. Tambahkan filter baru: `type === "savings"`.
+2. Ubah placeholder input menjadi `"Cari transaksi / tabungan..."`.
+
+✅ **Checkpoint 8.4:** Sistem penyaringan data bekerja secara instan tanpa loading ulang.
+
+---
+
+### 🛠️ Langkah 5: The Premium Table & Animasi
+
+Data ditampilkan dalam tabel yang sangat rapi. Kita menggunakan `AnimatePresence` dari Framer Motion agar saat baris data muncul atau menghilang, gerakannya terasa halus.
+
+- **Mata Uang:** Kita ubah angka menjadi format Rupiah yang mudah dibaca (`toLocaleString("id-ID")`).
+- **Tanggal:** Kita format tanggal menjadi lebih manusiawi (Contoh: "31 Mar 2026").
+
+**Tujuan:** Tampilkan transaksi dalam tabel animasi halus.
+
+**Mini Challenge:**
+
+* Tambahkan kolom baru `Notes` → tampilkan dummy text `"Belanja harian"`
+* **Hint:** Jangan lupa update `interface Transaction` di Langkah 1 agar mendukung kolom baru ini (misal: `notes?: string;`)!
+* Perhatikan animasi AnimatePresence saat menambah/menghapus data
+
+✅ **Checkpoint 8.5:** Penyajian data terasa profesional dan interaktif.
+
+---
+
+### 🎨 Langkah 6: Tailwind Design Tutorial
+
+Inilah "resep" rahasia desain premium di halaman ini:
+
+1.  **Glassmorphism:** Menggunakan `bg-gray-900/40` dan `backdrop-blur-md` untuk efek kaca buram yang elegan.
+2.  **Layouting:** Menggunakan `grid` untuk kartu dan `flex` untuk filter bar agar responsif di HP maupun Laptop.
+3.  **Spacing:** Sudut yang sangat bulat (`rounded-[2.5rem]`) memberikan kesan modern dan organik.
+
+**Tujuan:** Layouting, glassmorphism, spacing modern.
+
+**Mini Challenge:**
+
+* Tambahkan `hover:scale-105` pada kartu statistik
+* Ubah `rounded-[2.5rem]` menjadi `rounded-3xl`
+* Lihat perbedaan visual
+
+✅ **Checkpoint 8.6:** Desain visual kini konsisten, responsif, dan terlihat mahal.
+
+---
+
+### 📑 Langkah 7: Premium Pagination (Manajemen Data)
+
+Agar halaman tidak menjadi sangat panjang jika ada ribuan data, kita membaginya menjadi beberapa halaman (10 data per halaman).
+
+```tsx
+const itemsPerPage = 10;
+const indexOfLastItem = currentPage * itemsPerPage;
+const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+```
+**Tujuan:** Slice filteredData, navigasi page, prev/next buttons.
+
+**Mini Challenge:**
+
+1. Ubah `itemsPerPage` menjadi `5`
+2. Tambahkan tombol `First` & `Last` page
+3. Amati perbedaan pagination di tabel
+
+✅ **Checkpoint 8.7:** Navigasi data kini lebih teratur dan performa aplikasi tetap cepat.
+
+---
+
+## 📌 Ringkasan Akhir Chapter 8
+
+| Fitur | Status |
+| :--- | :--- |
+| TypeScript Type Safety | ✅ |
+| Live Recreative Analytics | ✅ |
+| Premium Stats Cards Design | ✅ |
+| Real-time Search & Filter Engine | ✅ |
+| Animated Premium Data Table | ✅ |
+| Tailwind Glassmorphism Styling | ✅ |
+| Client-Side Pagination System | ✅ |
+
+✅ **Checkpoint Final Chapter 8:** The Vault selesai dengan standar industri dan siap dikembangkan lebih jauh!

@@ -23,7 +23,7 @@ var db *sql.DB
 
 func initDB() {
 	// SESUAIKAN: password=admin123 dengan password pgAdmin kamu
-	connStr := "user=postgres password=KINGKONG69 dbname=finastriva sslmode=disable"
+	connStr := "user=postgres password=KINGKONG69 dbname=finastriva host=127.0.0.1 sslmode=disable"
 	var err error
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {

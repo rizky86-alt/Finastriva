@@ -7,8 +7,16 @@ import AnalyticsCard from "./components/AnalyticsCard";
 import TransactionForm from "./components/TransactionForm";
 import TransactionList from "./components/TransactionList";
 
+interface Transaction {
+  id: number;
+  amount: number;
+  desc: string;
+  type: string;
+  created_at: string;
+}
+
 export default function Home() {
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [amount, setAmount] = useState(0);
   const [desc, setDesc] = useState("");
   const [type, setType] = useState("expense");
@@ -33,7 +41,7 @@ export default function Home() {
     fetchTransactions();
   }, []);
 
-  const startEdit = (t: any) => {
+  const startEdit = (t: Transaction) => {
     setEditingId(t.id);
     setDesc(t.desc);
     setAmount(t.amount);
@@ -92,17 +100,17 @@ export default function Home() {
     }
   };
 
-  const totalBalance = transactions.reduce((acc, t: any) => 
+  const totalBalance = transactions.reduce((acc, t) => 
     t.type === "income" ? acc + (t.amount || 0) : acc - (t.amount || 0), 0
   );
 
   const incomeTotal = transactions
-    .filter((t: any) => t.type === "income")
-    .reduce((acc, t: any) => acc + (t.amount || 0), 0);
+    .filter((t) => t.type === "income")
+    .reduce((acc, t) => acc + (t.amount || 0), 0);
 
   const expenseTotal = transactions
-    .filter((t: any) => t.type === "expense")
-    .reduce((acc, t: any) => acc + (t.amount || 0), 0);
+    .filter((t) => t.type === "expense")
+    .reduce((acc, t) => acc + (t.amount || 0), 0);
 
   const chartData = [
     { name: "Pemasukan", value: incomeTotal },
@@ -145,7 +153,7 @@ export default function Home() {
         />
 
         <TransactionList 
-          transactions={transactions} 
+          transactions={transactions.slice(0, 5)} 
           onEdit={startEdit} 
           onDelete={hapusTransaksi} 
           isLoading={isLoading}

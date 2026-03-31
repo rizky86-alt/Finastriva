@@ -1,6 +1,6 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
-export default function AnalyticsCard({ income, expense, chartData }: { income: number; expense: number; chartData: any[] }) {
+export default function AnalyticsCard({ income, expense, chartData }: { income: number; expense: number; chartData: { name: string; value: number }[] }) {
   return (
     <div className="lg:col-span-2 bg-gray-900/40 backdrop-blur-md border border-gray-800 p-8 rounded-[2rem] shadow-2xl flex flex-col min-h-[350px]">
       <h2 className="text-gray-500 text-xs font-bold uppercase tracking-[0.2em] mb-4">Alokasi Dana</h2>
