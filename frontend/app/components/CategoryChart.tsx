@@ -19,14 +19,13 @@ interface GroupedData {
   value: number;
 }
 
-// Warna-warna futuristik untuk tiap potongan donat
 const COLORS = ["#8b5cf6", "#ec4899", "#06b6d4", "#f59e0b", "#10b981", "#ef4444"];
 
 export default function CategoryChart({ data }: CategoryChartProps) {
-  // 1. Filter hanya pengeluaran (expense)
+  // 1. Filter hanya pengeluaran
   const expenses = data.filter((t) => t.type === "expense");
 
-  // 2. Kelompokkan berdasarkan deskripsi (sebagai kategori sementara)
+  // 2. Kelompokkan berdasarkan deskripsi
   const groupedData = expenses.reduce((acc: GroupedData[], t: Transaction) => {
     const found = acc.find((item) => item.name === t.desc);
     if (found) {
@@ -37,7 +36,7 @@ export default function CategoryChart({ data }: CategoryChartProps) {
     return acc;
   }, [] as GroupedData[]);
 
-  // Ambil 5 pengeluaran terbesar saja biar gak penuh
+  // Ambil 5 pengeluaran terbesar saja
   const finalData = groupedData.sort((a, b) => b.value - a.value).slice(0, 5);
 
   return (
@@ -53,7 +52,7 @@ export default function CategoryChart({ data }: CategoryChartProps) {
               data={finalData}
               cx="50%"
               cy="50%"
-              innerRadius={60} // Ini yang bikin jadi Donat
+              innerRadius={60} 
               outerRadius={90}
               paddingAngle={5}
               dataKey="value"

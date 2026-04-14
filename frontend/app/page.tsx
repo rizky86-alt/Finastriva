@@ -1,11 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion"; // Diambil dari library framer-motion yang diinstall di Langkah 1
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import Header from "./components/Header";
 import BalanceCard from "./components/BalanceCard";
 import AnalyticsCard from "./components/AnalyticsCard";
 import TransactionForm from "./components/TransactionForm";
 import TransactionList from "./components/TransactionList";
+import { useAuth } from "./context/AuthContext";
 
 interface Transaction {
   id: number;
@@ -16,30 +18,67 @@ interface Transaction {
 }
 
 export default function Home() {
+  const { token, isAdmin, logout } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [amount, setAmount] = useState(0);
   const [desc, setDesc] = useState("");
   const [type, setType] = useState("expense");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+
+  // Redirect admin to user management
+  useEffect(() => {
+    if (isAdmin) {
+      router.push("/admin/users");
+    }
+  }, [isAdmin, router]);
+
+  // Helper untuk mendapatkan URL API yang valid
+  const getApiUrl = (endpoint: string) => {
+    const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+    const cleanBase = base.endsWith("/") ? base.slice(0, -1) : base;
+    const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    return `${cleanBase}${cleanEndpoint}`;
+  };
 
   const fetchTransactions = async () => {
+    if (!token || isAdmin) return;
     setIsLoading(true);
   
+    const url = getApiUrl("/api/transactions");
+
     try {
-      const res = await fetch("http://localhost:8080/api/transactions");
+      const res = await fetch(url, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (res.status === 401) {
+        logout();
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(`Server responded with ${res.status}`);
+      }
+
       const data = await res.json();
       setTransactions(data || []);
     } catch (err) {
-      console.error("Gagal ambil data:", err);
+      console.error(`Failed to fetch transactions from ${url}:`, err);
+      setTransactions([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTransactions();
-  }, []);
+    if (token && !isAdmin) {
+      fetchTransactions();
+    }
+  }, [token, isAdmin]);
 
   const startEdit = (t: Transaction) => {
     setEditingId(t.id);
@@ -57,17 +96,20 @@ export default function Home() {
 
   const tambahTransaksi = async () => {
     if (!desc || amount <= 0) return alert("Isi data dengan benar!");
+    if (!token) return;
 
     const isEdit = editingId !== null;
     const method = isEdit ? "PUT" : "POST";
-    const url = isEdit
-      ? `http://localhost:8080/api/transactions?id=${editingId}`
-      : "http://localhost:8080/api/transactions";
+    const baseUrl = getApiUrl("/api/transactions");
+    const url = isEdit ? `${baseUrl}?id=${editingId}` : baseUrl;
 
     try {
       const res = await fetch(url, {
         method: method,
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           amount: Number(amount),
           desc: desc,
@@ -78,27 +120,47 @@ export default function Home() {
       if (res.ok) {
         handleCancelEdit();
         fetchTransactions();
+      } else if (res.status === 401) {
+        logout();
+      } else {
+        const errorData = await res.json();
+        alert(errorData.error || `Gagal menyimpan: ${res.status}`);
       }
     } catch (err) {
-      alert("Koneksi ke server gagal");
+      console.error(`Error in tambahTransaksi:`, err);
+      alert("Koneksi ke server gagal. Pastikan Backend sudah jalan.");
     }
   };
 
   const hapusTransaksi = async (id: number) => {
     if (!confirm("Yakin ingin menghapus transaksi ini?")) return;
+    if (!token) return;
+
+    const url = `${getApiUrl("/api/transactions")}?id=${id}`;
 
     try {
-      const res = await fetch(`http://localhost:8080/api/transactions?id=${id}`, {
+      const res = await fetch(url, {
         method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
       });
 
       if (res.ok) {
         fetchTransactions();
+      } else if (res.status === 401) {
+        logout();
+      } else {
+        const errorData = await res.json();
+        alert(errorData.error || `Gagal menghapus: ${res.status}`);
       }
     } catch (err) {
-      console.error("Gagal menghapus:", err);
+      console.error(`Error in hapusTransaksi:`, err);
+      alert("Koneksi ke server gagal.");
     }
   };
+
+  if (isAdmin) return null;
 
   const totalBalance = transactions.reduce((acc, t) => 
     t.type === "income" ? acc + (t.amount || 0) : acc - (t.amount || 0), 0
@@ -121,11 +183,10 @@ export default function Home() {
     <main className="flex min-h-screen flex-col bg-black text-white font-sans antialiased">
       <Header />
 
-      {/* 6.2: GRID DASHBOARD UTAMA - SEKARANG BERANIMASI */}
       <motion.div 
-        initial={{ opacity: 0, y: 20 }} // Keadaan Awal: Tidak terlihat (opacity 0) dan agak ke bawah (y: 20px)
-        animate={{ opacity: 1, y: 0 }}   // Keadaan Akhir: Terlihat penuh dan kembali ke posisi asli
-        transition={{ duration: 0.5, delay: 0.2 }} // Mengatur durasi animasi 0.5 detik dan delay 0.2 detik agar terasa halus
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
         className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl w-full mx-auto px-6 pb-20"
       >
         <BalanceCard 
@@ -158,7 +219,7 @@ export default function Home() {
           onDelete={hapusTransaksi} 
           isLoading={isLoading}
         />
-      </motion.div> {/* <-- Pastikan tag penutupnya juga motion.div */}
+      </motion.div>
     </main>
   );
 }

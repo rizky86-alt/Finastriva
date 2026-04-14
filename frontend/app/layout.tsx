@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
-import Sidebar from "./components/Sidebar"; // Import Sidebar yang baru kita buat
+import Sidebar from "./components/Sidebar";
+import AuthGuard from "./components/AuthGuard";
+import { AuthProvider } from "./context/AuthContext";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -21,17 +23,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="font-sans bg-black text-white flex min-h-screen overflow-hidden">
-        {/* 1. Pasang Sidebar di sisi kiri */}
-        <Sidebar />
-
-        {/* 2. Area Konten Utama di sisi kanan */}
-        <main className="flex-1 overflow-y-auto h-screen bg-black relative">
-          {children}
-        </main>
+    <html lang="en" className={`${montserrat.variable} h-full antialiased`}>
+      <body className="font-sans min-h-screen flex bg-black text-white overflow-hidden">
+        <AuthProvider>
+          <AuthGuard>
+            <Sidebar />
+            <main className="flex-1 overflow-y-auto h-screen bg-black relative custom-scrollbar">
+              {children}
+            </main>
+          </AuthGuard>
+        </AuthProvider>
       </body>
     </html>
   );
 }
-

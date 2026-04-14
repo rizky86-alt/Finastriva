@@ -24,8 +24,7 @@ interface TrendChartProps {
 }
 
 export default function TrendChart({ data }: TrendChartProps) {
-  // 1. Logika Pengolahan Data (Group by Date)
-  // Kita ambil 10 data terakhir, jadikan negatif jika pengeluaran
+  // Ambil 10 data terakhir untuk tren
   const chartData = data.slice(0, 10).reverse().map(t => ({
     name: new Date(t.created_at).toLocaleDateString("id-ID", { day: '2-digit', month: 'short' }),
     amount: t.type === 'income' ? t.amount : -t.amount,

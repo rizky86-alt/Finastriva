@@ -8,7 +8,6 @@ interface TransactionFormProps {
   amount: number;
   setAmount: (val: number) => void;
   type: string;
-   // ... tambahkan props lainnya sesuai kode yang benar jika ada tambahan
   setType: (val: string) => void;
   onSubmit: () => void;
   onCancel: () => void;
@@ -24,7 +23,6 @@ export default function TransactionForm({
   setType,
   onSubmit,
   onCancel,
-  //...props yang lainnya
 }: TransactionFormProps) {
   return (
     <div className="lg:col-span-1 bg-gray-900/40 backdrop-blur-md border border-gray-800 p-8 rounded-[2rem] shadow-2xl h-fit">
@@ -32,7 +30,6 @@ export default function TransactionForm({
         {editingId ? "Edit Transaction" : "New Transaction"}
       </h3>
       
-       {/* ... (Input fields tetap terhubung ke props) ... */}
       <div className="flex gap-2 mb-6 bg-black/50 p-1.5 rounded-2xl border border-gray-800">
         <button
           onClick={() => setType("income")}
@@ -58,7 +55,7 @@ export default function TransactionForm({
           <input
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
-            className="w-full p-4 mt-1 rounded-2xl bg-gray-800/50 border border-gray-700 focus:border-blue-500 outline-none transition-all"
+            className="w-full p-4 mt-1 rounded-2xl bg-gray-800/50 border border-gray-700 focus:border-blue-500 outline-none transition-all text-white"
             placeholder="Beli Kopi..."
           />
         </div>
@@ -68,23 +65,23 @@ export default function TransactionForm({
             value={amount === 0 ? "" : amount}
             type="number"
             onChange={(e) => setAmount(Number(e.target.value))}
-            className="w-full p-4 mt-1 rounded-2xl bg-gray-800/50 border border-gray-700 focus:border-blue-500 outline-none transition-all font-mono text-lg"
+            className="w-full p-4 mt-1 rounded-2xl bg-gray-800/50 border border-gray-700 focus:border-blue-500 outline-none transition-all font-mono text-lg text-white"
             placeholder="0"
           />
         </div>
       </div>
 
-          <button 
-        onClick={onSubmit} 
+      <button
+        onClick={onSubmit}
         className="w-full mt-8 bg-blue-600 p-4 rounded-2xl font-black text-white hover:bg-blue-500 active:scale-[0.98] transition-all shadow-xl shadow-blue-900/30 flex items-center justify-center gap-2"
       >
         {editingId ? <CheckCircle size={20} /> : <PlusCircle size={20} />}
         {editingId ? "UPDATE DATA" : "SAVE TRANSACTION"}
-      </button> 
+      </button>
       {editingId && (
         <button
           onClick={onCancel}
-          className="w-full mt-4 text-gray-500 text-xs font-bold hover:text-white transition"
+          className="w-full mt-4 text-gray-500 text-xs font-bold hover:text-white transition font-sans"
         >
           CANCEL EDIT
         </button>

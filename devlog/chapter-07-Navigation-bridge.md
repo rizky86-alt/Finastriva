@@ -33,8 +33,10 @@ Sebagai *engineer*, kita harus menghindari *hardcoding*. Mengetik `http://localh
 Kita akan membuat **Pusat Komando** agar alamat API terpusat. Buat file baru bernama `.env.local` di folder `frontend/` (sejajar dengan `package.json`):
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:8080
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8080
 ```
+
+> **Pro-Tip:** Menggunakan `127.0.0.1` lebih stabil daripada `localhost` untuk menghindari error koneksi (NetworkError) akibat perbedaan resolusi IPv4 dan IPv6 di beberapa sistem.
 
 > **Penting:** Setelah buat file ini, matikan terminal (**Ctrl+C**) lalu jalankan lagi `npm run dev` agar Next.js membaca variabel barunya.
 
