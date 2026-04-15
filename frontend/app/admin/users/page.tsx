@@ -1,26 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/app/context/AuthContext";
 import { motion } from "framer-motion";
 import { ShieldAlert, User as UserIcon, Calendar, BadgeCheck } from "lucide-react";
 
 interface User {
   id: number;
   username: string;
-  role: string;
+  roles: string[];
   created_at: string;
 }
 
 export default function AdminUsersPage() {
-  const { token, isAdmin, logout } = useAuth();
+  const { token, isAdmin, isSuperAdmin, logout } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const getApiUrl = (endpoint: string) => {
     const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-    const cleanBase = base.endsWith("/") ? base.slice(0, -1) : base;
-    const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    // Hapus trailing slash dari base
+    const cleanBase = base.replace(/\/+$/, "");
+    // Pastikan endpoint mulai dengan satu slash
+    const cleanEndpoint = `/${endpoint.replace(/^\/+/, "")}`;
     return `${cleanBase}${cleanEndpoint}`;
   };
 
@@ -43,10 +45,18 @@ export default function AdminUsersPage() {
           return;
         }
 
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          const rawText = await res.text();
+          console.error("Non-JSON Response from", url, ":", rawText);
+          throw new Error(`Server returned non-JSON response (${res.status}).`);
+        }
+
         const data = await res.json();
         setUsers(data || []);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Gagal ambil data user:", err);
+        setUsers([]);
       } finally {
         setIsLoading(false);
       }
@@ -56,6 +66,32 @@ export default function AdminUsersPage() {
       fetchUsers();
     }
   }, [token, isAdmin, logout]);
+
+  const handleDeleteUser = async (id: number) => {
+    if (!confirm("Yakin ingin menghapus user ini?")) return;
+    const url = `${getApiUrl("/api/admin/users")}?id=${id}`;
+    try {
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      
+      const contentType = res.headers.get("content-type");
+      if (res.ok) {
+        setUsers(users.filter(u => u.id !== id));
+      } else {
+        let errMsg = "Gagal menghapus user.";
+        if (contentType && contentType.includes("application/json")) {
+            const data = await res.json();
+            errMsg = data.error || errMsg;
+        }
+        alert(errMsg);
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert("Terjadi kesalahan koneksi.");
+    }
+  };
 
   if (!isAdmin) {
     return (
@@ -103,11 +139,15 @@ export default function AdminUsersPage() {
                         <div className="w-12 h-12 bg-gray-800 rounded-2xl flex items-center justify-center text-gray-400 group-hover:text-white transition-colors">
                             <UserIcon size={24} />
                         </div>
-                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                            u.role === 'admin' ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-blue-500/10 text-blue-500 border border-blue-500/20"
-                        }`}>
-                            {u.role}
-                        </span>
+                        <div className="flex flex-col gap-1 items-end">
+                          {u.roles.map(role => (
+                            <span key={role} className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                (role === 'admin' || role === 'superadmin') ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-blue-500/10 text-blue-500 border border-blue-500/20"
+                            }`}>
+                                {role}
+                            </span>
+                          ))}
+                        </div>
                     </div>
 
                     <div className="space-y-4">
@@ -115,9 +155,18 @@ export default function AdminUsersPage() {
                             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Username</p>
                             <div className="flex items-center gap-2">
                                 <p className="text-lg font-black text-white">{u.username}</p>
-                                {u.role === 'admin' && <BadgeCheck size={16} className="text-red-500" />}
+                                {(u.roles.includes('admin') || u.roles.includes('superadmin')) && <BadgeCheck size={16} className="text-red-500" />}
                             </div>
                         </div>
+
+                        {isSuperAdmin && !u.roles.includes('superadmin') && (
+                          <button 
+                            onClick={() => handleDeleteUser(u.id)}
+                            className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border border-red-500/20 mt-2"
+                          >
+                            Delete User
+                          </button>
+                        )}
 
                         <div className="pt-4 border-t border-gray-800 flex items-center gap-2 text-gray-500">
                             <Calendar size={14} />

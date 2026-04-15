@@ -4,7 +4,9 @@
 
 ---
 
-# 📘 Chapter 10.5 – The Command Center: RBAC & Seeding
+# 📘 Chapter 10.5 – The Command Center: RBAC & Seeding (Legacy)
+
+> ⚠️ **Catatan Penting**: Sistem RBAC yang dijelaskan di bab ini adalah versi awal (Single-Table Role). Untuk sistem RBAC terbaru yang menggunakan Node.js dan 5-tabel granular permissions, silakan lihat [Chapter 12](./chapter-12-Advanced-RBAC-NodeJS.md).
 
 Selamat datang di **Chapter 10.5**. Setelah kita memiliki sistem login di Chapter 10, sekarang kita akan meningkatkan skalabilitasnya dengan memperkenalkan **Role-Based Access Control (RBAC)** dan sistem **Database Seeding**.
 

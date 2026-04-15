@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
-import Sidebar from "./components/Sidebar";
-import AuthGuard from "./components/AuthGuard";
 import { AuthProvider } from "./context/AuthContext";
+import ClientLayout from "./components/ClientLayout";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -23,15 +22,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${montserrat.variable} h-full antialiased`}>
-      <body className="font-sans min-h-screen flex bg-black text-white overflow-hidden">
+    <html lang="en" className={`${montserrat.variable} h-full antialiased scroll-smooth`}>
+      <body className="font-sans min-h-screen custom-scrollbar overflow-x-hidden">
         <AuthProvider>
-          <AuthGuard>
-            <Sidebar />
-            <main className="flex-1 overflow-y-auto h-screen bg-black relative custom-scrollbar">
-              {children}
-            </main>
-          </AuthGuard>
+          <ClientLayout>{children}</ClientLayout>
         </AuthProvider>
       </body>
     </html>

@@ -4,7 +4,9 @@
 
 ---
 
-# 📘 Chapter 5 – CRUD
+# 📘 Chapter 5 – CRUD (Legacy Backend Implementation)
+
+> ⚠️ **Penting**: Implementasi backend Golang yang dijelaskan di sini adalah bagian dari sejarah pengembangan (Fase 1). Saat ini, backend utama telah dimigrasi ke **Node.js + Express** untuk mendukung sistem RBAC yang lebih canggih. Detail backend terbaru ada di [Chapter 12](./chapter-12-Advanced-RBAC-NodeJS.md).
 
 Chapter ini fokus pada menyelesaikan objective utama Finastriva.  
 Sub-chapter saat ini:  

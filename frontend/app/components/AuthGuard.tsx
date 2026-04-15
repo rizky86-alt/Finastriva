@@ -12,14 +12,19 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     
-    // Jika tidak ada token dan bukan di halaman auth, tendang ke /auth
-    if (!storedToken && pathname !== "/auth") {
+    // Protected paths (exclude / (Landing) and /auth)
+    const isProtectedPath = pathname === "/dashboard" || 
+                           pathname.startsWith("/vault") || 
+                           pathname.startsWith("/hub") || 
+                           pathname.startsWith("/admin");
+
+    if (!storedToken && isProtectedPath) {
       router.push("/auth");
     }
     
-    // Jika sudah login tapi malah mau buka /auth, balikin ke dashboard
+    // If logged in and on auth page, redirect to dashboard
     if (storedToken && pathname === "/auth") {
-      router.push("/");
+      router.push("/dashboard");
     }
   }, [pathname, router, token]);
 

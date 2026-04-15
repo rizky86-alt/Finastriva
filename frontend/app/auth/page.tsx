@@ -17,8 +17,10 @@ export default function AuthPage() {
   // Helper untuk mendapatkan URL API yang valid
   const getApiUrl = (endpoint: string) => {
     const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-    const cleanBase = base.endsWith("/") ? base.slice(0, -1) : base;
-    const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    // Hapus trailing slash dari base
+    const cleanBase = base.replace(/\/+$/, "");
+    // Pastikan endpoint mulai dengan satu slash
+    const cleanEndpoint = `/${endpoint.replace(/^\/+/, "")}`;
     return `${cleanBase}${cleanEndpoint}`;
   };
 
@@ -37,20 +39,19 @@ export default function AuthPage() {
         body: JSON.stringify({ username, password }),
       });
 
-      let data;
       const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        data = await res.json();
-      } else {
-        const text = await res.text();
-        throw new Error(text || `Server error: ${res.status}`);
+      if (!contentType || !contentType.includes("application/json")) {
+        const rawText = await res.text();
+        console.error("Non-JSON Response from", url, ":", rawText);
+        throw new Error(`Server returned non-JSON response (${res.status}). Check if backend is running correctly.`);
       }
+
+      const data = await res.json();
 
       if (!res.ok) throw new Error(data.error || data.message || "Terjadi kesalahan");
 
       if (isLogin) {
-        // Gunakan fungsi login dari Context
-        login(data.token, data.username, data.role);
+        login(data.token, data.username, data.roles || []);
       } else {
         alert("Registrasi sukses! Silakan login.");
         setIsLogin(true);
@@ -64,12 +65,12 @@ export default function AuthPage() {
   };
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-gray-950 to-black font-sans antialiased text-white">
+    <main className="min-h-screen w-full flex items-center justify-center p-6 bg-black font-sans antialiased text-white">
       
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md bg-gray-900/40 backdrop-blur-xl border border-gray-800 p-10 rounded-[2.5rem] shadow-2xl"
+        className="w-full max-w-md bg-gray-900/50 backdrop-blur-xl border border-gray-800 p-10 rounded-[2.5rem] shadow-2xl"
       >
         <div className="flex flex-col items-center mb-8">
           <div className="relative w-20 h-20 mb-4 drop-shadow-[0_0_15px_rgba(37,99,235,0.4)]">

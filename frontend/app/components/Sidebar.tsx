@@ -2,18 +2,19 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, History, BrainCircuit, LogOut, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, History, BrainCircuit, LogOut, ShieldAlert, Home } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 const menuItems = [
-  { name: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/" },
+  { name: "Welcome", icon: <Home size={20} />, path: "/" },
+  { name: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
   { name: "The Vault", icon: <History size={20} />, path: "/vault" },
   { name: "AI Hub", icon: <BrainCircuit size={20} />, path: "/hub" },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { username, isAdmin, logout } = useAuth();
+  const { username, isAdmin, isSuperAdmin, logout } = useAuth();
 
   // Don't show sidebar on auth page
   if (pathname === "/auth") return null;
@@ -22,8 +23,7 @@ export default function Sidebar() {
     <aside className="w-64 bg-black border-r border-gray-800 flex flex-col h-screen sticky top-0 flex-shrink-0 z-50 text-white font-sans antialiased">
       {/* Logo Section */}
       <div className="p-8 flex items-center gap-3">
-        <div className="relative w-10 h-10 bg-blue-600 rounded-lg p-2 flex items-center justify-center shadow-[0_0_15px_rgba(37,99,235,0.4)]">
-           {/* Fallback if logo not found, but we will assume it exists in public/ */}
+        <div className="relative w-10 h-10 flex items-center justify-center">
            <Image 
             src="/logo-finastriva.svg" 
             alt="Finastriva Logo" 
@@ -31,7 +31,7 @@ export default function Sidebar() {
             className="object-contain"
           />
         </div>
-        <h1 className="text-xl font-black tracking-tighter">FINASTRIVA</h1>
+        <h1 className="text-xl font-black tracking-tighter uppercase italic">FINASTRIVA</h1>
       </div>
 
       {/* Navigation Links */}
@@ -81,7 +81,7 @@ export default function Sidebar() {
           <div>
             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Authenticated As</p>
             <p className={`text-sm font-black truncate ${isAdmin ? "text-red-400" : "text-blue-400"}`}>
-              {username || "User"} {isAdmin && " (ADMIN)"}
+              {username || "User"} {isSuperAdmin ? " (SUPER ADMIN)" : isAdmin ? " (ADMIN)" : ""}
             </p>
           </div>
           

@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 interface AuthContextType {
   token: string | null;
   username: string | null;
-  role: string | null;
-  login: (token: string, username: string, role: string) => void;
+  roles: string[];
+  login: (token: string, username: string, roles: string[]) => void;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,47 +19,51 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
-  const [role, setRole] = useState<string | null>(null);
+  const [roles, setRoles] = useState<string[]>([]);
   const router = useRouter();
 
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
     const savedUsername = localStorage.getItem("username");
-    const savedRole = localStorage.getItem("role");
+    const savedRoles = localStorage.getItem("roles");
     if (savedToken) setToken(savedToken);
     if (savedUsername) setUsername(savedUsername);
-    if (savedRole) setRole(savedRole);
+    if (savedRoles) setRoles(JSON.parse(savedRoles));
   }, []);
 
-  const login = (newToken: string, newUsername: string, newRole: string) => {
+  const login = (newToken: string, newUsername: string, newRoles: string[]) => {
     localStorage.setItem("token", newToken);
     localStorage.setItem("username", newUsername);
-    localStorage.setItem("role", newRole);
+    localStorage.setItem("roles", JSON.stringify(newRoles));
     setToken(newToken);
     setUsername(newUsername);
-    setRole(newRole);
-    router.push("/");
+    setRoles(newRoles);
+    router.push("/dashboard");
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("username");
-    localStorage.removeItem("role");
+    localStorage.removeItem("roles");
     setToken(null);
     setUsername(null);
-    setRole(null);
+    setRoles([]);
     router.push("/auth");
   };
+
+  const isAdmin = roles.includes("admin") || roles.includes("superadmin");
+  const isSuperAdmin = roles.includes("superadmin");
 
   return (
     <AuthContext.Provider value={{ 
       token, 
       username, 
-      role, 
+      roles, 
       login, 
       logout, 
       isAuthenticated: !!token,
-      isAdmin: role === "admin"
+      isAdmin,
+      isSuperAdmin
     }}>
       {children}
     </AuthContext.Provider>

@@ -11,9 +11,9 @@ import {
   Download 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import TrendChart from "../components/TrendChart";
-import CategoryChart from "../components/CategoryChart";
-import { useAuth } from "../context/AuthContext";
+import TrendChart from "@/app/components/TrendChart";
+import CategoryChart from "@/app/components/CategoryChart";
+import { useAuth } from "@/app/context/AuthContext";
 
 interface Transaction {
   id: number;
@@ -90,7 +90,8 @@ export default function VaultPage() {
 
   // Filtering Logic
   const filteredData = transactions.filter((t) => {
-    const matchSearch = t.desc.toLowerCase().includes(searchTerm.toLowerCase());
+    const desc = t.desc || "";
+    const matchSearch = desc.toLowerCase().includes(searchTerm.toLowerCase());
     const matchType = filterType === "all" || t.type === filterType;
     return matchSearch && matchType;
   });
