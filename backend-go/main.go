@@ -14,6 +14,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" // Driver PostgreSQL
 )
 
@@ -359,23 +360,26 @@ func AskAIHandler(w http.ResponseWriter, r *http.Request) {
 
     apiKey := os.Getenv("GEMINI_API_KEY")
     if apiKey == "" {
-        apiKey = "AIzaSyA-7xbB214n39sM-w5Mk03dERI1RKN8R80" 
+        fmt.Println("AI Error: GEMINI_API_KEY is missing from .env")
+        JSONError(w, "Konfigurasi AI (API Key) tidak ditemukan.", 500)
+        return
     }
-    client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
 
+    client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
     if err != nil {
-        JSONError(w, "Gagal konek ke AI Service", 500)
+        fmt.Println("AI Error: Failed to connect to AI Service:", err)
+        JSONError(w, "Gagal terhubung ke layanan AI.", 500)
         return
     }
     defer client.Close()
 
-    model := client.GenerativeModel("gemini-1.5-flash")
+    model := client.GenerativeModel("gemini-2.0-flash")
 
     // 5. PROMPT ENGINEERING (Detail Instruksi)
     prompt := fmt.Sprintf(`
-        Nama kamu adalah Finastriva Oracle. Kamu asisten keuangan cerdas Rizky.
-        Tugas: Analisis riwayat transaksi di bawah dan jawab pertanyaan user.
-        Gaya Bicara: Profesional, tech-savvy, singkat, dan solutif.
+        Nama kamu adalah Finastriva Oracle. Kamu asisten keuangan cerdas.
+        Tugas: Analisis riwayat transaksi di bawah dan jawab pertanyaan user secara solutif.
+        Gaya Bicara: Profesional, tech-savvy, singkat, dan gunakan Bahasa Indonesia yang baik.
         
         %s
         
@@ -383,9 +387,11 @@ func AskAIHandler(w http.ResponseWriter, r *http.Request) {
     `, history, input.Question)
 
     // 6. Generate Jawaban
+    fmt.Println("AI: Generating response for", currentUser)
     resp, err := model.GenerateContent(ctx, genai.Text(prompt))
     if err != nil {
-        JSONError(w, "Gemini gagal merespon", 500)
+        fmt.Println("AI Error: Gemini failed to respond:", err)
+        JSONError(w, "AI sedang sibuk atau mengalami kendala teknis. Coba lagi nanti.", 500)
         return
     }
 
@@ -425,6 +431,11 @@ func getFinancialContext(username string) string {
 }
 
 func main() {
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("Warning: .env file not found")
+	}
+
 	initDB()
 	defer db.Close()
 

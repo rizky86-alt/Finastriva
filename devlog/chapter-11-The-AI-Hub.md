@@ -25,34 +25,37 @@ Aplikasi kita tidak lagi hanya mencatat, tapi juga bisa **berpikir**.
 
 ---
 
-## 🛠️ Langkah Demi Langkah Analysis (Drafting Phase)
+## 🧪 Langkah Demi Langkah Implementation
 
 ### 🛠️ Langkah 1: Persiapan API Key
-Kita butuh `GEMINI_API_KEY` dari Google AI Studio. Simpan di file `.env` di backend (dan jangan di-commit!).
+Kita menggunakan `GEMINI_API_KEY` dari Google AI Studio. Di backend Go, kita menggunakan SDK `github.com/google/generative-ai-go/genai` untuk berkomunikasi dengan model `gemini-1.5-flash`.
 
-### 🛠️ Langkah 2: Menghubungkan Data ke AI
-AI butuh konteks. Kita tidak bisa hanya bertanya "Uangku habis buat apa?", AI harus tahu list transaksi kita.
-Kita akan mengambil data transaksi dari DB, memformatnya jadi JSON singkat, dan mengirimkannya sebagai bagian dari Prompt.
+### 🛠️ Langkah 2: Context Feeding (The "Brain")
+AI diberikan konteks berupa 15 transaksi terakhir user. Ini diformat menjadi teks naratif agar Gemini bisa memahami pola pengeluaran user sebelum menjawab pertanyaan.
 
-**Contoh Prompt Strategy:**
-> "Kamu adalah Finastriva AI. Berikut adalah data transaksi user dalam 1 bulan terakhir: [DATA_JSON]. Berdasarkan data ini, berikan analisis singkat dan 3 saran penghematan."
+### 🛠️ Langkah 3: Testing via Postman
+Sebelum membangun UI, kita wajib mengetes API secara manual untuk memastikan AuthMiddleware dan Gemini Integration berjalan lancar.
 
----
+**Step-by-step Testing:**
+1. **Login**: Ambil token JWT dari `POST /api/login`.
+2. **Setup Request**: Buat request `POST` ke `http://localhost:8080/api/ai/ask`.
+3. **Authorization**: Tambahkan header `Authorization: Bearer <TOKEN>`.
+4. **Body**: Kirim JSON `{"question": "Analisis pengeluaranku bulan ini"}`.
 
-## 🧪 Rencana Implementasi UI (The AI Hub)
-
-Halaman `/hub` akan memiliki:
-1.  **Chat Container**: Area percakapan dengan animasi *glassmorphism*.
-2.  **Floating Suggestions**: Tombol cepat seperti "Berapa total pengeluaranku?", "Beri saran investasi".
-3.  **AI Typing Animation**: Indikator saat Gemini sedang berpikir.
+### 🛠️ Langkah 4: The AI Interface (Frontend)
+Membangun halaman `/hub` dengan fitur:
+- **Glassmorphic Chat Bubble**: Desain modern dengan pemisahan warna antara user dan AI.
+- **Loading State**: Indikator "Oracle is thinking..." saat menunggu respon Gemini.
+- **Quick Suggestions**: Tombol cepat untuk pertanyaan umum.
+- **Auto-scroll**: Chat otomatis scroll ke bawah saat ada pesan baru.
 
 ---
 
 ## 📌 Status Saat Ini
 
-- [x] Backend Security: **Stable**
-- [x] Database Data Isolation: **Active**
-- [x] Frontend Auth Context: **Integrated**
-- [ ] Gemini API Integration: **Next Task**
+- [x] Gemini API Integration: **Complete**
+- [x] Context Feeding: **Active**
+- [x] AI Chat UI: **Deployed**
+- [x] Security (Auth Guard): **Verified**
 
-✅ **Checkpoint Awal Chapter 11:** Pondasi untuk integrasi AI sudah siap. Kita akan segera memulai implementasi kodenya! 🚀
+✅ **Checkpoint Final Chapter 11:** Finastriva kini memiliki asisten keuangan cerdas yang siap membantu user mengelola aset mereka! 🚀
